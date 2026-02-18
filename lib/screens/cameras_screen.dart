@@ -497,4 +497,3 @@ class _CamerasScreenState extends State<CamerasScreen> {
     );
   }
 }
-
