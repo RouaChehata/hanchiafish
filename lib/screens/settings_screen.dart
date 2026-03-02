@@ -230,7 +230,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            'user@primafish.com',
+            'user@hanchiafish.com',
             style: TextStyle(
               color: Colors.white.withOpacity(0.9),
               fontSize: 14,
@@ -571,4 +571,3 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 }
-

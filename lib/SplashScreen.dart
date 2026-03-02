@@ -4,7 +4,6 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:primaa/loginScreen.dart';
 
-
 class Splashscreen extends StatefulWidget {
   const Splashscreen({super.key});
 
@@ -278,7 +277,7 @@ class _SplashscreenState extends State<Splashscreen>
                                         ),
                                       ),
                                       child: Image.asset(
-                                        'images/pmm.png',
+                                        'images/téléchargement.png',
                                         fit: BoxFit.contain,
                                         isAntiAlias: true,
                                       ),
@@ -310,7 +309,7 @@ class _SplashscreenState extends State<Splashscreen>
                               },
                               blendMode: BlendMode.srcIn,
                               child: const Text(
-                                "Bienvenue sur Prima Fish",
+                                "Bienvenue sur Hanchia Fish",
                                 style: TextStyle(
                                   fontSize: 30,
                                   fontWeight: FontWeight.bold,

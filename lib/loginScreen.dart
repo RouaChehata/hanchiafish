@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -119,7 +120,10 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
       }
 
       // Simulate a slight delay for better UX
-      await Future.delayed(const Duration(milliseconds: 500));
+      await firebase_auth.FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+);
 
       // Navigate with a smoother transition
       Navigator.pushReplacement(
@@ -319,7 +323,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                                           ),
                                         ),
                                         child: Image.asset(
-                                          'images/pmm.png',
+                                          'images/téléchargement.png',
                                           fit: BoxFit.contain,
                                         ),
                                       ),
@@ -837,12 +841,6 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
     );
   }
 }
-
-class FirebaseAuth {
-  static get instance => null;
-}
-
-class UserCredential {}
 
 // Custom painter for animated wave pattern in background
 class WavePainter extends CustomPainter {

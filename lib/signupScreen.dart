@@ -1,13 +1,9 @@
-
-
 import 'dart:math' as math;
-
-import 'package:firebase_auth/firebase_auth.dart' hide FirebaseAuth;
+import 'package:firebase_auth/firebase_auth.dart' ;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:primaa/home.dart';
 import 'package:primaa/loginScreen.dart';
-
 
 class SignUp extends StatefulWidget {
   const SignUp({super.key});
@@ -21,7 +17,7 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _securityKeyController = TextEditingController();
-  
+
   bool _isAdmin = false;
   bool _isLoading = false;
   bool _showPassword = false;
@@ -40,16 +36,18 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    
+
     // Create particles for background animation
     final random = math.Random();
     for (int i = 0; i < 25; i++) {
-      _particles.add(Particle(
-        x: random.nextDouble() * 400,
-        y: random.nextDouble() * 800,
-        size: random.nextDouble() * 6 + 2,
-        speed: random.nextDouble() * 1.5 + 0.5,
-      ));
+      _particles.add(
+        Particle(
+          x: random.nextDouble() * 400,
+          y: random.nextDouble() * 800,
+          size: random.nextDouble() * 6 + 2,
+          speed: random.nextDouble() * 1.5 + 0.5,
+        ),
+      );
     }
 
     _animationController = AnimationController(
@@ -67,13 +65,16 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
       curve: const Interval(0.3, 0.8, curve: Curves.easeOutCubic),
     );
 
-    _shimmerAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0, // Assurez-vous que cette valeur est entre 0.0 et 1.0
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: const Interval(0.6, 1.0, curve: Curves.easeInOut),
-    ));
+    _shimmerAnimation =
+        Tween<double>(
+          begin: 0.0,
+          end: 1.0, // Assurez-vous que cette valeur est entre 0.0 et 1.0
+        ).animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: const Interval(0.6, 1.0, curve: Curves.easeInOut),
+          ),
+        );
 
     _backgroundAnimation = CurvedAnimation(
       parent: _animationController,
@@ -91,10 +92,10 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
   Future<void> signUp() async {
     // Hide keyboard when sign up is pressed
     FocusManager.instance.primaryFocus?.unfocus();
-    
-    if (_emailController.text.trim().isEmpty || 
-        _passwordController.text.trim().isEmpty || 
-        _confirmPasswordController.text.trim().isEmpty || 
+
+    if (_emailController.text.trim().isEmpty ||
+        _passwordController.text.trim().isEmpty ||
+        _confirmPasswordController.text.trim().isEmpty ||
         _securityKeyController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -117,12 +118,18 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
               children: [
                 const Icon(Icons.error_outline, color: Colors.white),
                 const SizedBox(width: 10),
-                const Expanded(child: Text("Clé de sécurité incorrecte. Inscription impossible.")),
+                const Expanded(
+                  child: Text(
+                    "Clé de sécurité incorrecte. Inscription impossible.",
+                  ),
+                ),
               ],
             ),
             backgroundColor: Colors.redAccent,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
             margin: const EdgeInsets.all(12),
           ),
         );
@@ -137,12 +144,16 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
               children: [
                 const Icon(Icons.error_outline, color: Colors.white),
                 const SizedBox(width: 10),
-                const Expanded(child: Text("L'adresse email est mal formatée.")),
+                const Expanded(
+                  child: Text("L'adresse email est mal formatée."),
+                ),
               ],
             ),
             backgroundColor: Colors.redAccent,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
             margin: const EdgeInsets.all(12),
           ),
         );
@@ -157,12 +168,16 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
               children: [
                 const Icon(Icons.error_outline, color: Colors.white),
                 const SizedBox(width: 10),
-                const Expanded(child: Text("Les mots de passe ne correspondent pas.")),
+                const Expanded(
+                  child: Text("Les mots de passe ne correspondent pas."),
+                ),
               ],
             ),
             backgroundColor: Colors.redAccent,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
             margin: const EdgeInsets.all(12),
           ),
         );
@@ -170,11 +185,11 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
         return;
       }
 
-      final  userCredential =
-          await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
+      final userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
+            email: _emailController.text.trim(),
+            password: _passwordController.text.trim(),
+          );
 
       // Simulate a slight delay for better UX
       await Future.delayed(const Duration(milliseconds: 500));
@@ -183,18 +198,23 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
       Navigator.pushReplacement(
         context,
         PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) => 
+          pageBuilder: (context, animation, secondaryAnimation) =>
               Home(userEmail: _emailController.text.trim()),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             const begin = Offset(0.0, 0.1);
             const end = Offset.zero;
             const curve = Curves.easeOutCubic;
-            var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+            var tween = Tween(
+              begin: begin,
+              end: end,
+            ).chain(CurveTween(curve: curve));
             var offsetAnimation = animation.drive(tween);
-            
-            var fadeAnimation = Tween<double>(begin: 0.0, end: 1.0)
-                .animate(CurvedAnimation(parent: animation, curve: curve));
-            
+
+            var fadeAnimation = Tween<double>(
+              begin: 0.0,
+              end: 1.0,
+            ).animate(CurvedAnimation(parent: animation, curve: curve));
+
             return FadeTransition(
               opacity: fadeAnimation,
               child: SlideTransition(position: offsetAnimation, child: child),
@@ -214,7 +234,7 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
       } else if (e.code == 'operation-not-allowed') {
         errorMessage = "Opération non autorisée.";
       }
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
@@ -226,7 +246,9 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
           ),
           backgroundColor: Colors.redAccent,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
           margin: const EdgeInsets.all(12),
           duration: const Duration(seconds: 4),
         ),
@@ -273,19 +295,21 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
             particle.y -= particle.speed * _backgroundAnimation.value;
             if (particle.y < 0) {
               particle.y = MediaQuery.of(context).size.height;
-              particle.x = math.Random().nextDouble() * MediaQuery.of(context).size.width;
+              particle.x =
+                  math.Random().nextDouble() *
+                  MediaQuery.of(context).size.width;
             }
           }
-          
+
           return Container(
             height: double.infinity,
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Color(0xFF0D47A1),  // Deep ocean blue at top
-                  Color(0xFF1565C0),  // Deep blue
-                  Color(0xFF1E88E5),  // Medium blue
-                  Color(0xFF42A5F5),  // Light blue at bottom
+                  Color(0xFF0D47A1), // Deep ocean blue at top
+                  Color(0xFF1565C0), // Deep blue
+                  Color(0xFF1E88E5), // Medium blue
+                  Color(0xFF42A5F5), // Light blue at bottom
                 ],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -296,21 +320,27 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
               children: [
                 // Background particles
                 CustomPaint(
-                  size: Size(MediaQuery.of(context).size.width, MediaQuery.of(context).size.height),
+                  size: Size(
+                    MediaQuery.of(context).size.width,
+                    MediaQuery.of(context).size.height,
+                  ),
                   painter: ParticlePainter(_particles),
                 ),
-                
+
                 // Background wave pattern
                 Positioned.fill(
                   child: CustomPaint(
                     painter: WavePainter(_backgroundAnimation.value),
                   ),
                 ),
-                
+
                 SafeArea(
                   child: Center(
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24.0,
+                        vertical: 32.0,
+                      ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -341,7 +371,7 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
                                         ),
                                       ),
                                     ),
-                                    
+
                                     // Inner circle
                                     Container(
                                       width: 140,
@@ -358,7 +388,7 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
                                         ],
                                       ),
                                     ),
-                                  
+
                                     // Logo with shimmer effect
                                     ShaderMask(
                                       shaderCallback: (Rect bounds) {
@@ -385,12 +415,14 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
                                           border: Border.all(
-                                            color: Colors.white.withOpacity(0.3),
+                                            color: Colors.white.withOpacity(
+                                              0.3,
+                                            ),
                                             width: 2,
                                           ),
                                         ),
                                         child: Image.asset(
-                                          'images/pmm.png',
+                                          'images/téléchargement.png',
                                           fit: BoxFit.contain,
                                         ),
                                       ),
@@ -470,7 +502,9 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
                                               begin: Alignment.centerLeft,
                                               end: Alignment.centerRight,
                                             ),
-                                            borderRadius: BorderRadius.circular(10),
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
                                           ),
                                         ),
                                       ],
@@ -489,15 +523,24 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
                                       decoration: InputDecoration(
                                         prefixIcon: Container(
                                           padding: const EdgeInsets.all(12),
-                                          margin: const EdgeInsets.only(right: 8),
+                                          margin: const EdgeInsets.only(
+                                            right: 8,
+                                          ),
                                           decoration: BoxDecoration(
-                                            color: const Color(0xFF1E88E5).withOpacity(0.1),
-                                            borderRadius: const BorderRadius.only(
-                                              topLeft: Radius.circular(15),
-                                              bottomLeft: Radius.circular(15),
-                                              topRight: Radius.circular(30),
-                                              bottomRight: Radius.circular(30),
-                                            ),
+                                            color: const Color(
+                                              0xFF1E88E5,
+                                            ).withOpacity(0.1),
+                                            borderRadius:
+                                                const BorderRadius.only(
+                                                  topLeft: Radius.circular(15),
+                                                  bottomLeft: Radius.circular(
+                                                    15,
+                                                  ),
+                                                  topRight: Radius.circular(30),
+                                                  bottomRight: Radius.circular(
+                                                    30,
+                                                  ),
+                                                ),
                                           ),
                                           child: const Icon(
                                             Icons.email_outlined,
@@ -516,16 +559,29 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
                                           fontSize: 14,
                                         ),
                                         enabledBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(15),
-                                          borderSide: BorderSide(color: Colors.grey[300]!),
+                                          borderRadius: BorderRadius.circular(
+                                            15,
+                                          ),
+                                          borderSide: BorderSide(
+                                            color: Colors.grey[300]!,
+                                          ),
                                         ),
                                         focusedBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(15),
-                                          borderSide: const BorderSide(color: Color(0xFF1A237E), width: 2),
+                                          borderRadius: BorderRadius.circular(
+                                            15,
+                                          ),
+                                          borderSide: const BorderSide(
+                                            color: Color(0xFF1A237E),
+                                            width: 2,
+                                          ),
                                         ),
                                         filled: true,
                                         fillColor: Colors.white,
-                                        contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                              vertical: 20,
+                                              horizontal: 16,
+                                            ),
                                       ),
                                     ),
                                     const SizedBox(height: 20),
@@ -542,15 +598,24 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
                                       decoration: InputDecoration(
                                         prefixIcon: Container(
                                           padding: const EdgeInsets.all(12),
-                                          margin: const EdgeInsets.only(right: 8),
+                                          margin: const EdgeInsets.only(
+                                            right: 8,
+                                          ),
                                           decoration: BoxDecoration(
-                                            color: const Color(0xFF1E88E5).withOpacity(0.1),
-                                            borderRadius: const BorderRadius.only(
-                                              topLeft: Radius.circular(15),
-                                              bottomLeft: Radius.circular(15),
-                                              topRight: Radius.circular(30),
-                                              bottomRight: Radius.circular(30),
-                                            ),
+                                            color: const Color(
+                                              0xFF1E88E5,
+                                            ).withOpacity(0.1),
+                                            borderRadius:
+                                                const BorderRadius.only(
+                                                  topLeft: Radius.circular(15),
+                                                  bottomLeft: Radius.circular(
+                                                    15,
+                                                  ),
+                                                  topRight: Radius.circular(30),
+                                                  bottomRight: Radius.circular(
+                                                    30,
+                                                  ),
+                                                ),
                                           ),
                                           child: const Icon(
                                             Icons.lock_outline,
@@ -559,7 +624,9 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
                                         ),
                                         suffixIcon: IconButton(
                                           icon: Icon(
-                                            _showPassword ? Icons.visibility_off : Icons.visibility,
+                                            _showPassword
+                                                ? Icons.visibility_off
+                                                : Icons.visibility,
                                             color: const Color(0xFF607D8B),
                                           ),
                                           onPressed: () {
@@ -580,16 +647,29 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
                                           fontSize: 14,
                                         ),
                                         enabledBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(15),
-                                          borderSide: BorderSide(color: Colors.grey[300]!),
+                                          borderRadius: BorderRadius.circular(
+                                            15,
+                                          ),
+                                          borderSide: BorderSide(
+                                            color: Colors.grey[300]!,
+                                          ),
                                         ),
                                         focusedBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(15),
-                                          borderSide: const BorderSide(color: Color(0xFF1A237E), width: 2),
+                                          borderRadius: BorderRadius.circular(
+                                            15,
+                                          ),
+                                          borderSide: const BorderSide(
+                                            color: Color(0xFF1A237E),
+                                            width: 2,
+                                          ),
                                         ),
                                         filled: true,
                                         fillColor: Colors.white,
-                                        contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                              vertical: 20,
+                                              horizontal: 16,
+                                            ),
                                       ),
                                     ),
                                     const SizedBox(height: 20),
@@ -606,15 +686,24 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
                                       decoration: InputDecoration(
                                         prefixIcon: Container(
                                           padding: const EdgeInsets.all(12),
-                                          margin: const EdgeInsets.only(right: 8),
+                                          margin: const EdgeInsets.only(
+                                            right: 8,
+                                          ),
                                           decoration: BoxDecoration(
-                                            color: const Color(0xFF1E88E5).withOpacity(0.1),
-                                            borderRadius: const BorderRadius.only(
-                                              topLeft: Radius.circular(15),
-                                              bottomLeft: Radius.circular(15),
-                                              topRight: Radius.circular(30),
-                                              bottomRight: Radius.circular(30),
-                                            ),
+                                            color: const Color(
+                                              0xFF1E88E5,
+                                            ).withOpacity(0.1),
+                                            borderRadius:
+                                                const BorderRadius.only(
+                                                  topLeft: Radius.circular(15),
+                                                  bottomLeft: Radius.circular(
+                                                    15,
+                                                  ),
+                                                  topRight: Radius.circular(30),
+                                                  bottomRight: Radius.circular(
+                                                    30,
+                                                  ),
+                                                ),
                                           ),
                                           child: const Icon(
                                             Icons.lock_outline,
@@ -623,12 +712,15 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
                                         ),
                                         suffixIcon: IconButton(
                                           icon: Icon(
-                                            _showConfirmPassword ? Icons.visibility_off : Icons.visibility,
+                                            _showConfirmPassword
+                                                ? Icons.visibility_off
+                                                : Icons.visibility,
                                             color: const Color(0xFF607D8B),
                                           ),
                                           onPressed: () {
                                             setState(() {
-                                              _showConfirmPassword = !_showConfirmPassword;
+                                              _showConfirmPassword =
+                                                  !_showConfirmPassword;
                                             });
                                           },
                                         ),
@@ -644,16 +736,29 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
                                           fontSize: 14,
                                         ),
                                         enabledBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(15),
-                                          borderSide: BorderSide(color: Colors.grey[300]!),
+                                          borderRadius: BorderRadius.circular(
+                                            15,
+                                          ),
+                                          borderSide: BorderSide(
+                                            color: Colors.grey[300]!,
+                                          ),
                                         ),
                                         focusedBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(15),
-                                          borderSide: const BorderSide(color: Color(0xFF1A237E), width: 2),
+                                          borderRadius: BorderRadius.circular(
+                                            15,
+                                          ),
+                                          borderSide: const BorderSide(
+                                            color: Color(0xFF1A237E),
+                                            width: 2,
+                                          ),
                                         ),
                                         filled: true,
                                         fillColor: Colors.white,
-                                        contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                              vertical: 20,
+                                              horizontal: 16,
+                                            ),
                                       ),
                                     ),
                                     const SizedBox(height: 20),
@@ -669,15 +774,24 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
                                       decoration: InputDecoration(
                                         prefixIcon: Container(
                                           padding: const EdgeInsets.all(12),
-                                          margin: const EdgeInsets.only(right: 8),
+                                          margin: const EdgeInsets.only(
+                                            right: 8,
+                                          ),
                                           decoration: BoxDecoration(
-                                            color: const Color(0xFF1E88E5).withOpacity(0.1),
-                                            borderRadius: const BorderRadius.only(
-                                              topLeft: Radius.circular(15),
-                                              bottomLeft: Radius.circular(15),
-                                              topRight: Radius.circular(30),
-                                              bottomRight: Radius.circular(30),
-                                            ),
+                                            color: const Color(
+                                              0xFF1E88E5,
+                                            ).withOpacity(0.1),
+                                            borderRadius:
+                                                const BorderRadius.only(
+                                                  topLeft: Radius.circular(15),
+                                                  bottomLeft: Radius.circular(
+                                                    15,
+                                                  ),
+                                                  topRight: Radius.circular(30),
+                                                  bottomRight: Radius.circular(
+                                                    30,
+                                                  ),
+                                                ),
                                           ),
                                           child: const Icon(
                                             Icons.security,
@@ -696,16 +810,29 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
                                           fontSize: 14,
                                         ),
                                         enabledBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(15),
-                                          borderSide: BorderSide(color: Colors.grey[300]!),
+                                          borderRadius: BorderRadius.circular(
+                                            15,
+                                          ),
+                                          borderSide: BorderSide(
+                                            color: Colors.grey[300]!,
+                                          ),
                                         ),
                                         focusedBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(15),
-                                          borderSide: const BorderSide(color: Color(0xFF1A237E), width: 2),
+                                          borderRadius: BorderRadius.circular(
+                                            15,
+                                          ),
+                                          borderSide: const BorderSide(
+                                            color: Color(0xFF1A237E),
+                                            width: 2,
+                                          ),
                                         ),
                                         filled: true,
                                         fillColor: Colors.white,
-                                        contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                              vertical: 20,
+                                              horizontal: 16,
+                                            ),
                                       ),
                                     ),
                                     const SizedBox(height: 35),
@@ -716,7 +843,9 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
                                         borderRadius: BorderRadius.circular(20),
                                         boxShadow: [
                                           BoxShadow(
-                                            color: const Color(0xFF1A237E).withOpacity(0.3),
+                                            color: const Color(
+                                              0xFF1A237E,
+                                            ).withOpacity(0.3),
                                             blurRadius: 15,
                                             offset: const Offset(0, 8),
                                             spreadRadius: -5,
@@ -727,11 +856,18 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
                                         onPressed: _isLoading ? null : signUp,
                                         style: ElevatedButton.styleFrom(
                                           foregroundColor: Colors.white,
-                                          backgroundColor: const Color(0xFF1A237E),
-                                          minimumSize: const Size(double.infinity, 60),
+                                          backgroundColor: const Color(
+                                            0xFF1A237E,
+                                          ),
+                                          minimumSize: const Size(
+                                            double.infinity,
+                                            60,
+                                          ),
                                           padding: EdgeInsets.zero,
                                           shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(20),
+                                            borderRadius: BorderRadius.circular(
+                                              20,
+                                            ),
                                           ),
                                           elevation: 0,
                                         ),
@@ -746,7 +882,9 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
                                               begin: Alignment.centerLeft,
                                               end: Alignment.centerRight,
                                             ),
-                                            borderRadius: BorderRadius.circular(20),
+                                            borderRadius: BorderRadius.circular(
+                                              20,
+                                            ),
                                           ),
                                           child: Container(
                                             alignment: Alignment.center,
@@ -754,29 +892,42 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
                                                 ? const SizedBox(
                                                     width: 24,
                                                     height: 24,
-                                                    child: CircularProgressIndicator(
-                                                      color: Colors.white,
-                                                      strokeWidth: 2.5,
-                                                    ),
+                                                    child:
+                                                        CircularProgressIndicator(
+                                                          color: Colors.white,
+                                                          strokeWidth: 2.5,
+                                                        ),
                                                   )
                                                 : Row(
-                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
                                                     children: [
                                                       const Text(
                                                         'Inscription',
                                                         style: TextStyle(
                                                           fontSize: 18,
-                                                          fontWeight: FontWeight.w600,
+                                                          fontWeight:
+                                                              FontWeight.w600,
                                                           letterSpacing: 1.0,
                                                         ),
                                                       ),
                                                       const SizedBox(width: 8),
                                                       Container(
-                                                        padding: const EdgeInsets.all(4),
-                                                        decoration: BoxDecoration(
-                                                          color: Colors.white.withOpacity(0.2),
-                                                          shape: BoxShape.circle,
-                                                        ),
+                                                        padding:
+                                                            const EdgeInsets.all(
+                                                              4,
+                                                            ),
+                                                        decoration:
+                                                            BoxDecoration(
+                                                              color: Colors
+                                                                  .white
+                                                                  .withOpacity(
+                                                                    0.2,
+                                                                  ),
+                                                              shape: BoxShape
+                                                                  .circle,
+                                                            ),
                                                         child: const Icon(
                                                           Icons.arrow_forward,
                                                           size: 18,
@@ -794,7 +945,8 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
 
                                     // Login Link
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         const Text(
                                           'Déjà un compte? ',
@@ -808,23 +960,37 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
                                             Navigator.pushReplacement(
                                               context,
                                               PageRouteBuilder(
-                                                pageBuilder: (_, __, ___) => const Login(),
-                                                transitionDuration: const Duration(milliseconds: 400),
-                                                transitionsBuilder: (_, animation, __, child) {
-                                                  return SlideTransition(
-                                                    position: Tween<Offset>(
-                                                      begin: const Offset(-1, 0),
-                                                      end: Offset.zero,
-                                                    ).animate(CurvedAnimation(
-                                                      parent: animation,
-                                                      curve: Curves.easeOutCubic,
-                                                    )),
-                                                    child: FadeTransition(
-                                                      opacity: animation, 
-                                                      child: child,
+                                                pageBuilder: (_, __, ___) =>
+                                                    const Login(),
+                                                transitionDuration:
+                                                    const Duration(
+                                                      milliseconds: 400,
                                                     ),
-                                                  );
-                                                },
+                                                transitionsBuilder:
+                                                    (_, animation, __, child) {
+                                                      return SlideTransition(
+                                                        position:
+                                                            Tween<Offset>(
+                                                              begin:
+                                                                  const Offset(
+                                                                    -1,
+                                                                    0,
+                                                                  ),
+                                                              end: Offset.zero,
+                                                            ).animate(
+                                                              CurvedAnimation(
+                                                                parent:
+                                                                    animation,
+                                                                curve: Curves
+                                                                    .easeOutCubic,
+                                                              ),
+                                                            ),
+                                                        child: FadeTransition(
+                                                          opacity: animation,
+                                                          child: child,
+                                                        ),
+                                                      );
+                                                    },
                                               ),
                                             );
                                           },
@@ -834,8 +1000,11 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
                                               color: Color(0xFF1A237E),
                                               fontWeight: FontWeight.bold,
                                               fontSize: 16,
-                                              decoration: TextDecoration.underline,
-                                              decorationColor: Color(0xFF1A237E),
+                                              decoration:
+                                                  TextDecoration.underline,
+                                              decorationColor: Color(
+                                                0xFF1A237E,
+                                              ),
                                               decorationThickness: 1.5,
                                             ),
                                           ),
@@ -853,7 +1022,10 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
                           Opacity(
                             opacity: _formAnimation.value.clamp(0.0, 1.0),
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
                               decoration: BoxDecoration(
                                 color: Colors.white.withOpacity(0.2),
                                 borderRadius: BorderRadius.circular(30),
@@ -901,14 +1073,14 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
 // Custom painter for animated wave pattern in background
 class WavePainter extends CustomPainter {
   final double animationValue;
-  
+
   WavePainter(this.animationValue);
-  
+
   @override
   void paint(Canvas canvas, Size size) {
     // First wave (bottom)
     _paintWave(
-      canvas, 
+      canvas,
       size,
       color: Colors.white.withOpacity(0.05),
       amplitude: size.height * 0.05,
@@ -916,10 +1088,10 @@ class WavePainter extends CustomPainter {
       phase: animationValue * 2,
       baseHeight: size.height * 0.75,
     );
-    
+
     // Second wave (middle)
     _paintWave(
-      canvas, 
+      canvas,
       size,
       color: Colors.white.withOpacity(0.07),
       amplitude: size.height * 0.04,
@@ -927,10 +1099,10 @@ class WavePainter extends CustomPainter {
       phase: animationValue * -3,
       baseHeight: size.height * 0.5,
     );
-    
+
     // Third wave (top)
     _paintWave(
-      canvas, 
+      canvas,
       size,
       color: Colors.white.withOpacity(0.04),
       amplitude: size.height * 0.03,
@@ -939,9 +1111,9 @@ class WavePainter extends CustomPainter {
       baseHeight: size.height * 0.3,
     );
   }
-  
+
   void _paintWave(
-    Canvas canvas, 
+    Canvas canvas,
     Size size, {
     required Color color,
     required double amplitude,
@@ -952,20 +1124,22 @@ class WavePainter extends CustomPainter {
     final paint = Paint()
       ..color = color
       ..style = PaintingStyle.fill;
-    
+
     final path = Path();
-    
+
     path.moveTo(0, baseHeight);
-    
+
     for (double x = 0; x <= size.width; x++) {
-      double y = math.sin((x / size.width * frequency * math.pi * 2) + phase) * amplitude;
+      double y =
+          math.sin((x / size.width * frequency * math.pi * 2) + phase) *
+          amplitude;
       path.lineTo(x, baseHeight + y);
     }
-    
+
     path.lineTo(size.width, size.height);
     path.lineTo(0, size.height);
     path.close();
-    
+
     canvas.drawPath(path, paint);
   }
 
@@ -981,7 +1155,7 @@ class Particle {
   double y;
   double size;
   double speed;
-  
+
   Particle({
     required this.x,
     required this.y,
@@ -993,16 +1167,18 @@ class Particle {
 // Painter for underwater particles
 class ParticlePainter extends CustomPainter {
   final List<Particle> particles;
-  
+
   ParticlePainter(this.particles);
-  
+
   @override
   void paint(Canvas canvas, Size size) {
     for (var particle in particles) {
       final paint = Paint()
-        ..color = Colors.white.withOpacity(0.2 * (particle.size / 10).clamp(0.0, 1.0))
+        ..color = Colors.white.withOpacity(
+          0.2 * (particle.size / 10).clamp(0.0, 1.0),
+        )
         ..style = PaintingStyle.fill;
-      
+
       canvas.drawCircle(
         Offset(particle.x, particle.y),
         particle.size * 0.5,
