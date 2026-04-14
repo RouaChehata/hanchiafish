@@ -1,15 +1,25 @@
 import 'dart:async';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:primaa/models/boat.dart';
+import 'package:primaa/models/boat_model.dart';
+import '../services/pdf_service.dart';
+import '../widgets/animated_speed_gauge.dart';
+import '../widgets/wave_background_card.dart';
+import '../widgets/live_indicator.dart';
+import '../widgets/flip_stat_card.dart';
 
 class BoatDetailScreen extends StatefulWidget {
   final Boat boat;
-
   const BoatDetailScreen({super.key, required this.boat});
 
   @override
@@ -22,10 +32,17 @@ class _BoatDetailScreenState extends State<BoatDetailScreen>
   late double _currentSpeed;
   late String _lastUpdate;
   bool _followOnMap = true;
+  String? _rapport;
+  bool _rapportLoading = false;
+  bool _showRapport = false;
+  bool _isLoadingGps = false;
+  final TextEditingController _responsableCtrl = TextEditingController();
 
   final MapController _mapController = MapController();
-  Timer? _simulationTimer;
+  Timer? _gpsTimer;
   late AnimationController _waveController;
+  late AnimationController _pulseController;
+  late AnimationController _sonarController;
 
   @override
   void initState() {
@@ -34,34 +51,58 @@ class _BoatDetailScreenState extends State<BoatDetailScreen>
     _currentSpeed = widget.boat.speed;
     _lastUpdate = widget.boat.lastUpdate;
 
-    // Animation des vagues
     _waveController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 4),
     )..repeat();
 
-    // Simulation de données en temps réel pour la démo
-    _simulationTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
-      setState(() {
-        // On simule un léger déplacement du bateau
-        _currentPosition = LatLng(
-          _currentPosition.latitude + 0.0005,
-          _currentPosition.longitude + 0.0005,
-        );
-        _currentSpeed = (_currentSpeed + 0.3) % 22;
-        _lastUpdate = "Il y a quelques secondes";
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat(reverse: true);
 
-        if (_followOnMap) {
-          _mapController.move(_currentPosition, _mapController.camera.zoom);
-        }
-      });
+    _sonarController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat();
+
+    // Load GPS from Flask
+    _loadGps();
+    _gpsTimer = Timer.periodic(const Duration(seconds: 60), (timer) {
+      _loadGps();
     });
+  }
+
+  Future<void> _loadGps() async {
+    setState(() => _isLoadingGps = true);
+    try {
+      final response = await http
+          .get(Uri.parse('http://127.0.0.1:5000/gps'))
+          .timeout(const Duration(seconds: 3));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        setState(() {
+          _currentPosition = LatLng(data['latitude'], data['longitude']);
+          _lastUpdate = "Il y a quelques secondes";
+          if (_followOnMap) {
+            _mapController.move(_currentPosition, _mapController.camera.zoom);
+          }
+        });
+      }
+    } catch (e) {
+      // serveur mch shayel — keep current position
+    } finally {
+      setState(() => _isLoadingGps = false);
+    }
   }
 
   @override
   void dispose() {
-    _simulationTimer?.cancel();
+    _gpsTimer?.cancel();
     _waveController.dispose();
+    _pulseController.dispose();
+    _sonarController.dispose();
+    _responsableCtrl.dispose();
     super.dispose();
   }
 
@@ -70,88 +111,589 @@ class _BoatDetailScreenState extends State<BoatDetailScreen>
     final boat = widget.boat;
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Stack(
-        children: [
-          // Image d'arrière-plan pleine page
-          Positioned.fill(
-            child: Image.asset(
-              'images/66.jpeg',
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                // Fallback si l'image n'existe pas
-                return Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Color(0xFF0F172A),
-                        Color(0xFF1E293B),
-                        Color(0xFF334155),
-                      ],
+      backgroundColor: const Color(0xFFF8FAFC),
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 320,
+            pinned: true,
+            backgroundColor: const Color(0xFFF8FAFC),
+            leading: Container(
+              margin: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: IconButton(
+                onPressed: () => Navigator.of(context).pop(),
+                icon: const Icon(
+                  Icons.arrow_back_ios_new,
+                  color: Color(0xFF1F2937),
+                  size: 18,
+                ),
+              ),
+            ),
+            actions: [
+              Container(
+                margin: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.08),
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: IconButton(
+                  onPressed: _loadGps,
+                  icon: _isLoadingGps
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Color(0xFF1E3A8A),
+                          ),
+                        )
+                      : const Icon(
+                          Icons.refresh,
+                          color: Color(0xFF1E3A8A),
+                          size: 18,
+                        ),
+                ),
+              ),
+            ],
+            flexibleSpace: FlexibleSpaceBar(
+              background: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Positioned.fill(
+                    child: Image.asset(
+                      'images/66.jpeg',
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          decoration: const BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Color(0xFF0D47A1),
+                                Color(0xFF1565C0),
+                                Color(0xFF1E88E5),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
-                );
-              },
-            ),
-          ),
-          // Animated wave overlay (très subtil)
-          Positioned.fill(
-            child: AnimatedBuilder(
-              animation: _waveController,
-              builder: (context, child) {
-                return CustomPaint(
-                  painter: SubtleWavePainter(_waveController.value),
-                );
-              },
-            ),
-          ),
-          // Safe area content
-          SafeArea(
-            child: Column(
-              children: [
-                _buildModernAppBar(boat),
-                _buildModernHeader(boat),
-                Expanded(
-                  child: Container(
-                    margin: const EdgeInsets.only(top: 20),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.95),
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(32),
-                        topRight: Radius.circular(32),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 20,
-                          offset: const Offset(0, -10),
-                        ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(32),
-                        topRight: Radius.circular(32),
-                      ),
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.all(24),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildModernSectionHeader('Informations générales'),
-                            const SizedBox(height: 16),
-                            _buildModernGeneralInfo(boat),
-                            const SizedBox(height: 24),
-                            _buildModernSectionHeader('Position GPS & Temps réel'),
-                            const SizedBox(height: 16),
-                            _buildModernGpsInfo(),
-                            const SizedBox(height: 20),
-                            _buildModernMapCard(),
-                            const SizedBox(height: 20),
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.transparent,
+                            Colors.black.withOpacity(0.1),
+                            Colors.black.withOpacity(0.3),
                           ],
                         ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 20,
+                    left: 20,
+                    right: 20,
+                    child: _buildModernDashboardHeader(boat),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Container(
+              decoration: const BoxDecoration(
+                color: Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(32),
+                  topRight: Radius.circular(32),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 24),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: _buildModernSectionHeader('Informations générales'),
+                  ),
+                  const SizedBox(height: 16),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: _buildModernStatsGrid(boat),
+                  ),
+                  const SizedBox(height: 24),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: _buildModernSectionHeader(
+                      'Position GPS & Temps réel',
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: _buildModernGpsInfo(),
+                  ),
+                  const SizedBox(height: 20),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: _buildSpeedGaugeSection(),
+                  ),
+                  const SizedBox(height: 20),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: _buildModernMapCard(),
+                  ),
+                  const SizedBox(height: 20),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: _buildGroqRapportSection(boat),
+                  ),
+                  const SizedBox(height: 40),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _generateRapport(Boat boat) async {
+    setState(() {
+      _rapportLoading = true;
+      _rapport = null;
+      _showRapport = true;
+    });
+
+    const apiKey = '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';
+
+    final prompt =
+        """
+Tu es un officier maritime. Génère un rapport d'état professionnel en français.
+
+DONNÉES DU BATEAU:
+- Nom: ${boat.name}
+- Statut: ${boat.status}
+- Position GPS: Lat ${_currentPosition.latitude.toStringAsFixed(4)}, Lon ${_currentPosition.longitude.toStringAsFixed(4)}
+- Vitesse: ${_currentSpeed.toStringAsFixed(1)} noeuds
+- Dernière mise à jour: $_lastUpdate
+
+Le rapport doit inclure:
+1. RÉSUMÉ DE L'ÉTAT
+2. POSITION & NAVIGATION
+3. ÉTAT TECHNIQUE
+4. RECOMMANDATIONS
+""";
+
+    try {
+      final response = await http.post(
+        Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
+        headers: {
+          'Authorization': 'Bearer $apiKey',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'model': 'llama-3.1-8b-instant',
+          'messages': [
+            {'role': 'user', 'content': prompt},
+          ],
+          'max_tokens': 800,
+          'temperature': 0.7,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        setState(() {
+          _rapport = data['choices'][0]['message']['content'];
+        });
+      } else {
+        final error = jsonDecode(response.body);
+        setState(() {
+          _rapport = 'Erreur: ${error['error']['message']}';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _rapport = 'Erreur connexion: $e';
+      });
+    } finally {
+      setState(() {
+        _rapportLoading = false;
+      });
+    }
+  }
+
+  Future<void> _downloadPdf(Boat boat) async {
+    if (_rapport == null) return;
+
+    final now = DateTime.now();
+    final dateStr =
+        '${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}';
+    final responsable = _responsableCtrl.text.trim().isEmpty
+        ? 'Non renseigné'
+        : _responsableCtrl.text.trim();
+
+    final pdf = pw.Document();
+
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(40),
+        header: (context) => pw.Container(
+          padding: const pw.EdgeInsets.only(bottom: 12),
+          decoration: const pw.BoxDecoration(
+            border: pw.Border(
+              bottom: pw.BorderSide(color: PdfColors.blue800, width: 2),
+            ),
+          ),
+          child: pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            children: [
+              pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text(
+                    "RAPPORT D'ETAT MARITIME",
+                    style: pw.TextStyle(
+                      fontSize: 16,
+                      fontWeight: pw.FontWeight.bold,
+                      color: PdfColors.blue900,
+                    ),
+                  ),
+                  pw.Text(
+                    boat.name,
+                    style: pw.TextStyle(fontSize: 12, color: PdfColors.blue700),
+                  ),
+                ],
+              ),
+              pw.Container(
+                padding: const pw.EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: pw.BoxDecoration(
+                  color: PdfColors.blue700,
+                  borderRadius: pw.BorderRadius.circular(20),
+                ),
+                child: pw.Text(
+                  boat.status,
+                  style: pw.TextStyle(
+                    color: PdfColors.white,
+                    fontWeight: pw.FontWeight.bold,
+                    fontSize: 10,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        footer: (context) => pw.Row(
+          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+          children: [
+            pw.Text(
+              'Genere le $dateStr — CONFIDENTIEL',
+              style: const pw.TextStyle(color: PdfColors.grey500, fontSize: 8),
+            ),
+            pw.Text(
+              'Page ${context.pageNumber} / ${context.pagesCount}',
+              style: const pw.TextStyle(color: PdfColors.grey500, fontSize: 8),
+            ),
+          ],
+        ),
+        build: (context) => [
+          pw.SizedBox(height: 20),
+          pw.Text(
+            "RAPPORT D'ETAT DETAILLE",
+            style: pw.TextStyle(
+              fontSize: 13,
+              fontWeight: pw.FontWeight.bold,
+              color: PdfColors.blue800,
+            ),
+          ),
+          pw.Divider(color: PdfColors.blue200),
+          pw.SizedBox(height: 8),
+          pw.Text(
+            _rapport!,
+            style: const pw.TextStyle(fontSize: 10.5, lineSpacing: 4),
+          ),
+          pw.SizedBox(height: 30),
+          pw.Container(
+            padding: const pw.EdgeInsets.all(16),
+            decoration: pw.BoxDecoration(
+              border: pw.Border.all(color: PdfColors.blue200),
+              borderRadius: pw.BorderRadius.circular(8),
+              color: PdfColors.blue50,
+            ),
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text(
+                  'DÉCLARATION DE RESPONSABILITÉ',
+                  style: pw.TextStyle(
+                    fontSize: 11,
+                    fontWeight: pw.FontWeight.bold,
+                    color: PdfColors.blue900,
+                  ),
+                ),
+                pw.SizedBox(height: 10),
+                pw.Text(
+                  'Je, $responsable, déclare que les informations contenues dans ce rapport sont exactes et mises à jour. '
+                  'Je suis responsable de la sécurité et de la maintenance du ${boat.name}.',
+                  style: const pw.TextStyle(fontSize: 10, lineSpacing: 3),
+                ),
+                pw.SizedBox(height: 14),
+                pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  children: [
+                    pw.Text(
+                      'Date : $dateStr',
+                      style: pw.TextStyle(
+                        fontSize: 10,
+                        fontWeight: pw.FontWeight.bold,
+                      ),
+                    ),
+                    pw.Text(
+                      'Signature : $responsable',
+                      style: pw.TextStyle(
+                        fontSize: 10,
+                        fontWeight: pw.FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+
+    await Printing.layoutPdf(
+      onLayout: (format) async => pdf.save(),
+      name: 'rapport_${boat.name}.pdf',
+    );
+  }
+
+  Widget _buildGroqRapportSection(Boat boat) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.blue.shade300,
+                Colors.blue.shade400,
+                Colors.blueAccent,
+              ],
+            ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.blue.shade300.withOpacity(0.3),
+                blurRadius: 15,
+                offset: const Offset(0, 6),
+              ),
+              BoxShadow(
+                color: Colors.blueAccent.withOpacity(0.2),
+                blurRadius: 25,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            onPressed: _rapportLoading ? null : () => _generateRapport(boat),
+            icon: _rapportLoading
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
+                  )
+                : const Text('⚡', style: TextStyle(fontSize: 18)),
+            label: Text(
+              _rapportLoading
+                  ? 'Groq génère le rapport...'
+                  : 'Générer Rapport IA',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ),
+        if (_showRapport && _rapport != null) ...[
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.blue.shade50,
+                  Colors.blue.shade100,
+                  Colors.blue.shade50,
+                ],
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.blue.shade200.withOpacity(0.5),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.blue.shade200.withOpacity(0.2),
+                  blurRadius: 15,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Colors.blue.shade300, Colors.blue.shade400],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.description_outlined,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Rapport Généré',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue.shade700,
+                      ),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      onPressed: () => setState(() => _showRapport = false),
+                      icon: const Icon(
+                        Icons.close,
+                        size: 18,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+                const Divider(color: Colors.blue),
+                const SizedBox(height: 8),
+                Text(
+                  _rapport!,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 13,
+                    height: 1.7,
+                    color: Colors.blue.shade800,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Nom du responsable',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue.shade700,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _responsableCtrl,
+                  decoration: InputDecoration(
+                    hintText: 'Ex: Roua Chehata',
+                    hintStyle: GoogleFonts.plusJakartaSans(color: Colors.grey),
+                    prefixIcon: const Icon(
+                      Icons.person_outline,
+                      color: Colors.blue,
+                    ),
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.blue.shade200),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.blue.shade200),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Colors.blue,
+                        width: 2,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: () => _downloadPdf(boat),
+                    icon: const Icon(Icons.picture_as_pdf, color: Colors.white),
+                    label: Text(
+                      'Télécharger PDF',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
                     ),
                   ),
@@ -160,361 +702,171 @@ class _BoatDetailScreenState extends State<BoatDetailScreen>
             ),
           ),
         ],
-      ),
+      ],
     );
   }
 
-  Widget _buildModernAppBar(Boat boat) {
+  Widget _buildModernDashboardHeader(Boat boat) {
+    Color statusColor;
+    String statusLabel = boat.status;
+    IconData statusIcon;
+    switch (boat.status) {
+      case 'En mer':
+        statusColor = Colors.blueAccent;
+        statusIcon = Icons.water;
+        break;
+      case 'Au port':
+        statusColor = Colors.amber;
+        statusIcon = Icons.anchor;
+        break;
+      case 'En maintenance':
+        statusColor = Colors.red;
+        statusIcon = Icons.build;
+        break;
+      default:
+        statusColor = Colors.grey;
+        statusIcon = Icons.help_outline;
+        statusLabel = 'Statut inconnu';
+    }
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.95),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+          BoxShadow(
+            color: Colors.blueAccent.withOpacity(0.2),
+            blurRadius: 15,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        border: Border.all(color: Colors.white.withOpacity(0.8), width: 1),
+      ),
       child: Row(
         children: [
-          GestureDetector(
-            onTap: () => Navigator.of(context).pop(),
-            child: Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: Colors.white.withOpacity(0.2),
-                  width: 1,
-                ),
+          Container(
+            width: 90,
+            height: 90,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.blueAccent.withOpacity(0.1),
+                  Colors.blue.withOpacity(0.05),
+                ],
               ),
-              child: const Icon(
-                Icons.arrow_back_ios_new,
-                color: Colors.white,
-                size: 20,
+              border: Border.all(
+                color: Colors.blueAccent.withOpacity(0.3),
+                width: 2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.blueAccent.withOpacity(0.3),
+                  blurRadius: 20,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: ClipOval(
+              child: Image.asset(
+                boat.imageUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.blueAccent, Colors.blue],
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.directions_boat_filled,
+                    color: Colors.white,
+                    size: 36,
+                  ),
+                ),
               ),
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 20),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   boat.name,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: GoogleFonts.plusJakartaSans(
                     fontSize: 24,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF1F2937),
                     letterSpacing: -0.5,
                   ),
                 ),
+                const SizedBox(height: 4),
                 Text(
                   'ID: ${boat.id}',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.7),
+                  style: GoogleFonts.plusJakartaSans(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
+                    color: const Color(0xFF6B7280),
                   ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: statusColor.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: statusColor.withOpacity(0.4),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(statusIcon, size: 16, color: statusColor),
+                          const SizedBox(width: 8),
+                          Text(
+                            statusLabel,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: statusColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // GPS status indicator
+                    LiveIndicator(
+                      text: _lastUpdate,
+                      size: 10,
+                      textStyle: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF10B981),
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Colors.white.withOpacity(0.2),
-                width: 1,
-              ),
-            ),
-            child: const Icon(
-              Icons.more_vert,
-              color: Colors.white,
-              size: 20,
-            ),
-          ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildModernHeader(Boat boat) {
-    Color statusColor;
-    String statusLabel = boat.status;
-    IconData statusIcon;
-
-    switch (boat.status) {
-      case 'En mer':
-        statusColor = const Color(0xFF0D47A1);
-        statusIcon = Icons.water;
-        break;
-      case 'Au port':
-        statusColor = const Color(0xFFF59E0B);
-        statusIcon = Icons.anchor;
-        break;
-      case 'En maintenance':
-        statusColor = const Color(0xFFEF4444);
-        statusIcon = Icons.build;
-        break;
-      default:
-        statusColor = const Color(0xFF6B7280);
-        statusIcon = Icons.help_outline;
-        statusLabel = 'Statut inconnu';
-    }
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      height: 180,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: Stack(
-          children: [
-            // Overlay pour améliorer la lisibilité (moins transparent pour voir plus l'image)
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.black.withOpacity(0.3),
-                      Colors.black.withOpacity(0.2),
-                      Colors.black.withOpacity(0.1),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(24),
-                ),
-              ),
-            ),
-            // Contenu
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Row(
-                children: [
-                  // Image du bateau
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Colors.white.withOpacity(0.3),
-                          Colors.white.withOpacity(0.1),
-                        ],
-                      ),
-                      border: Border.all(
-                        color: Colors.white.withOpacity(0.5),
-                        width: 2,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.4),
-                          blurRadius: 15,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: Image.asset(
-                        boat.imageUrl,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            decoration: const BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [Color(0xFF0D47A1), Color(0xFF1565C0)],
-                              ),
-                            ),
-                            child: const Icon(
-                              Icons.directions_boat_filled,
-                              color: Colors.white,
-                              size: 32,
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 20),
-                  // Informations du bateau
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          boat.name,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: -0.5,
-                            shadows: [
-                              Shadow(
-                                color: Colors.black,
-                                offset: Offset(0, 2),
-                                blurRadius: 6,
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'ID: ${boat.id}',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            shadows: [
-                              Shadow(
-                                color: Colors.black,
-                                offset: Offset(0, 1),
-                                blurRadius: 3,
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        // Badges de statut
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    statusColor.withOpacity(0.4),
-                                    statusColor.withOpacity(0.2),
-                                  ],
-                                ),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: statusColor.withOpacity(0.6),
-                                  width: 1.5,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: statusColor.withOpacity(0.4),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    statusIcon,
-                                    size: 16,
-                                    color: Colors.white,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    statusLabel,
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 13,
-                                      letterSpacing: 0.5,
-                                      shadows: [
-                                        Shadow(
-                                          color: Colors.black,
-                                          offset: Offset(0, 1),
-                                          blurRadius: 2,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    Colors.white.withOpacity(0.25),
-                                    Colors.white.withOpacity(0.15),
-                                  ],
-                                ),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: Colors.white.withOpacity(0.5),
-                                  width: 1.5,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.white.withOpacity(0.3),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
-                                    width: 8,
-                                    height: 8,
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFF10B981),
-                                      borderRadius: BorderRadius.circular(4),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Color(0xFF10B981),
-                                          blurRadius: 6,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'Temps réel',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 13,
-                                      shadows: [
-                                        Shadow(
-                                          color: Colors.black,
-                                          offset: Offset(0, 1),
-                                          blurRadius: 2,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -531,7 +883,7 @@ class _BoatDetailScreenState extends State<BoatDetailScreen>
               gradient: const LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [Color(0xFF0D47A1), Color(0xFF1565C0)],
+                colors: [Colors.blueAccent, Colors.blue],
               ),
               borderRadius: BorderRadius.circular(3),
             ),
@@ -539,10 +891,10 @@ class _BoatDetailScreenState extends State<BoatDetailScreen>
           const SizedBox(width: 12),
           Text(
             title,
-            style: const TextStyle(
+            style: GoogleFonts.plusJakartaSans(
               fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1F2937),
+              fontWeight: FontWeight.w700,
+              color: const Color(0xFF1F2937),
               letterSpacing: -0.5,
             ),
           ),
@@ -551,152 +903,102 @@ class _BoatDetailScreenState extends State<BoatDetailScreen>
     );
   }
 
-  Widget _buildModernGeneralInfo(Boat boat) {
-    return Column(
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: _buildModernInfoCard(
-                title: 'Vitesse',
-                icon: Icons.speed_rounded,
-                value: '${_currentSpeed.toStringAsFixed(1)} nœuds',
-                color: const Color(0xFF0D47A1),
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF0D47A1), Color(0xFF1565C0)],
-                ),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _buildModernInfoCard(
-                title: 'Équipage',
-                icon: Icons.group_rounded,
-                value: '${boat.crewMembers} marins',
-                color: const Color(0xFF8B5CF6),
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(
-              child: _buildModernInfoCard(
-                title: 'Caméra',
-                icon: boat.cameraActive ? Icons.videocam_rounded : Icons.videocam_off_rounded,
-                value: boat.cameraActive ? 'Active' : 'Inactive',
-                color: boat.cameraActive ? const Color(0xFF10B981) : const Color(0xFF6B7280),
-                gradient: boat.cameraActive
-                    ? const LinearGradient(
-                        colors: [Color(0xFF10B981), Color(0xFF059669)],
-                      )
-                    : const LinearGradient(
-                        colors: [Color(0xFF6B7280), Color(0xFF4B5563)],
-                      ),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _buildModernInfoCard(
-                title: 'Carburant',
-                icon: Icons.local_gas_station_rounded,
-                value: '85%',
-                color: const Color(0xFFF59E0B),
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
+  Widget _buildModernStatsGrid(Boat boat) {
+    return SizedBox(
+      height: 150,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        children: [
+          FlipStatCard(
+            icon: Icons.speed_rounded,
+            value: '${_currentSpeed.toStringAsFixed(0)}',
+            label: 'nœuds',
+            detailTitle: 'Vitesse actuelle',
+            detailContent: 'Le bateau navigue à ${_currentSpeed.toStringAsFixed(1)} nœuds. Vitesse maximale enregistrée: 45.2 nœuds.',
+            iconColor: Colors.blueAccent,
+          ),
+          const SizedBox(width: 12),
+          FlipStatCard(
+            icon: Icons.group_rounded,
+            value: '${boat.crewMembers}',
+            label: 'marins',
+            detailTitle: 'Équipage',
+            detailContent: '${boat.crewMembers} membres d\'équipage à bord. Tous les membres sont qualifiés et opérationnels.',
+            iconColor: Colors.purple,
+          ),
+          const SizedBox(width: 12),
+          FlipStatCard(
+            icon: boat.cameraActive
+                ? Icons.videocam_rounded
+                : Icons.videocam_off_rounded,
+            value: boat.cameraActive ? 'ON' : 'OFF',
+            label: 'caméra',
+            detailTitle: 'Système de surveillance',
+            detailContent: boat.cameraActive 
+                ? 'Caméras actives et enregistrant. 4 caméras opérationnelles.'
+                : 'Caméras désactivées. Maintenance en cours.',
+            iconColor: boat.cameraActive ? Colors.green : Colors.grey,
+          ),
+          const SizedBox(width: 12),
+          FlipStatCard(
+            icon: Icons.local_gas_station_rounded,
+            value: '85',
+            label: '%',
+            detailTitle: 'Niveau de carburant',
+            detailContent: '85% de réservoir plein. Autonomie estimée: 12 heures de navigation.',
+            iconColor: Colors.amber,
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildModernInfoCard({
-    required String title,
+  Widget _buildCompactStatCard({
     required IconData icon,
     required String value,
+    required String unit,
     required Color color,
-    required Gradient gradient,
   }) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.1), width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-          BoxShadow(
-            color: color.withOpacity(0.05),
-            blurRadius: 30,
-            offset: const Offset(0, 10),
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
           ),
         ],
-        border: Border.all(
-          color: color.withOpacity(0.1),
-          width: 1,
-        ),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  gradient: gradient,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: color.withOpacity(0.2),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Icon(
-                  icon,
-                  size: 24,
-                  color: Colors.white,
-                ),
-              ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: color,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ),
-            ],
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: color, size: 16),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 6),
           Text(
             value,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1F2937),
-              letterSpacing: -0.5,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: const Color(0xFF1F2937),
+            ),
+          ),
+          Text(
+            unit,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 8,
+              fontWeight: FontWeight.w500,
+              color: const Color(0xFF6B7280),
             ),
           ),
         ],
@@ -708,14 +1010,10 @@ class _BoatDetailScreenState extends State<BoatDetailScreen>
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            const Color(0xFFF8FAFC),
-            const Color(0xFFF1F5F9),
-            Colors.white,
-          ],
+          colors: [Color(0xFFF8FAFC), Color(0xFFF1F5F9), Colors.white],
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
@@ -725,10 +1023,7 @@ class _BoatDetailScreenState extends State<BoatDetailScreen>
             offset: const Offset(0, 8),
           ),
         ],
-        border: Border.all(
-          color: const Color(0xFFE2E8F0),
-          width: 1,
-        ),
+        border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -742,13 +1037,6 @@ class _BoatDetailScreenState extends State<BoatDetailScreen>
                     colors: [Color(0xFF0D47A1), Color(0xFF1565C0)],
                   ),
                   borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF0D47A1).withOpacity(0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
                 ),
                 child: const Icon(
                   Icons.location_on_rounded,
@@ -757,68 +1045,40 @@ class _BoatDetailScreenState extends State<BoatDetailScreen>
                 ),
               ),
               const SizedBox(width: 16),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       'Coordonnées actuelles',
-                      style: TextStyle(
+                      style: GoogleFonts.inter(
                         fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1F2937),
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF1F2937),
                         letterSpacing: -0.5,
                       ),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
                       'Position GPS en temps réel',
-                      style: TextStyle(
+                      style: GoogleFonts.inter(
                         fontSize: 13,
-                        color: Color(0xFF6B7280),
+                        color: const Color(0xFF6B7280),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      const Color(0xFF10B981).withOpacity(0.1),
-                      const Color(0xFF10B981).withOpacity(0.05),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: const Color(0xFF10B981).withOpacity(0.2),
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF10B981),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      _lastUpdate,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF10B981),
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ],
+              // Live indicator
+              LiveIndicator(
+                text: _lastUpdate,
+                size: 8,
+                textStyle: const TextStyle(
+                  fontSize: 12,
+                  color: Color(0xFF10B981),
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.5,
                 ),
               ),
             ],
@@ -829,10 +1089,7 @@ class _BoatDetailScreenState extends State<BoatDetailScreen>
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: const Color(0xFFE5E7EB),
-                width: 1,
-              ),
+              border: Border.all(color: const Color(0xFFE5E7EB), width: 1),
             ),
             child: Row(
               children: [
@@ -855,11 +1112,11 @@ class _BoatDetailScreenState extends State<BoatDetailScreen>
                             ),
                           ),
                           const SizedBox(width: 8),
-                          const Text(
+                          Text(
                             'Latitude',
-                            style: TextStyle(
+                            style: GoogleFonts.inter(
                               fontSize: 12,
-                              color: Color(0xFF6B7280),
+                              color: const Color(0xFF6B7280),
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -868,61 +1125,60 @@ class _BoatDetailScreenState extends State<BoatDetailScreen>
                       const SizedBox(height: 8),
                       Text(
                         _currentPosition.latitude.toStringAsFixed(6),
-                        style: const TextStyle(
+                        style: GoogleFonts.inter(
                           fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1F2937),
-                          fontFamily: 'monospace',
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF1F2937),
+                          letterSpacing: -0.5,
                         ),
                       ),
                     ],
                   ),
                 ),
-                Container(
-                  width: 1,
-                  height: 50,
-                  color: const Color(0xFFE5E7EB),
-                ),
+                Container(width: 1, height: 50, color: const Color(0xFFE5E7EB)),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF8B5CF6).withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF8B5CF6).withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(
+                                Icons.compass_calibration,
+                                color: Color(0xFF8B5CF6),
+                                size: 16,
+                              ),
                             ),
-                            child: const Icon(
-                              Icons.compass_calibration,
-                              color: Color(0xFF8B5CF6),
-                              size: 16,
+                            const SizedBox(width: 8),
+                            Text(
+                              'Longitude',
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                color: const Color(0xFF6B7280),
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 8),
-                          const Text(
-                            'Longitude',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Color(0xFF6B7280),
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        _currentPosition.longitude.toStringAsFixed(6),
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1F2937),
-                          fontFamily: 'monospace',
+                          ],
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 8),
+                        Text(
+                          _currentPosition.longitude.toStringAsFixed(6),
+                          style: GoogleFonts.inter(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF1F2937),
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -933,21 +1189,49 @@ class _BoatDetailScreenState extends State<BoatDetailScreen>
     );
   }
 
+  Widget _buildSpeedGaugeSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildModernSectionHeader('Vitesse en temps réel'),
+        const SizedBox(height: 16),
+        WaveBackgroundCard(
+          padding: const EdgeInsets.all(24),
+          child: Center(
+            child: AnimatedSpeedGauge(
+              speed: _currentSpeed,
+              maxSpeed: 50.0,
+              unit: 'nœuds',
+              size: 240.0,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildModernMapCard() {
     return Container(
       height: 400,
       decoration: BoxDecoration(
+        color: Colors.white,
         borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white, width: 4),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 30,
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 25,
+            offset: const Offset(0, 10),
+          ),
+          BoxShadow(
+            color: Colors.blueAccent.withOpacity(0.1),
+            blurRadius: 40,
             offset: const Offset(0, 15),
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(20),
         child: Stack(
           children: [
             FlutterMap(
@@ -964,6 +1248,22 @@ class _BoatDetailScreenState extends State<BoatDetailScreen>
                   urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                   userAgentPackageName: 'com.example.primaa',
                 ),
+                // Geofencing circle
+                CircleLayer(
+                  circles: [
+                    CircleMarker(
+                      point: const LatLng(
+                        35.661970525816834,
+                        10.958101377208251,
+                      ),
+                      radius: 500,
+                      useRadiusInMeter: true,
+                      color: Colors.blue.withOpacity(0.15),
+                      borderColor: Colors.blue,
+                      borderStrokeWidth: 2,
+                    ),
+                  ],
+                ),
                 MarkerLayer(
                   markers: [
                     Marker(
@@ -976,7 +1276,6 @@ class _BoatDetailScreenState extends State<BoatDetailScreen>
                 ),
               ],
             ),
-            // Modern map controls
             Positioned(
               top: 20,
               right: 20,
@@ -984,60 +1283,35 @@ class _BoatDetailScreenState extends State<BoatDetailScreen>
                 children: [
                   _buildModernMapControl(
                     icon: Icons.my_location_rounded,
-                    onTap: () {
-                      _mapController.move(
-                        _currentPosition,
-                        _mapController.camera.zoom,
-                      );
-                    },
+                    onTap: () => _mapController.move(
+                      _currentPosition,
+                      _mapController.camera.zoom,
+                    ),
                     tooltip: 'Centrer sur la position',
                   ),
                   const SizedBox(height: 12),
                   _buildModernMapControl(
-                    icon: _followOnMap ? Icons.gps_fixed_rounded : Icons.location_searching_rounded,
+                    icon: _followOnMap
+                        ? Icons.gps_fixed_rounded
+                        : Icons.location_searching_rounded,
                     isActive: _followOnMap,
-                    onTap: () {
-                      setState(() {
-                        _followOnMap = !_followOnMap;
-                      });
-                    },
+                    onTap: () => setState(() => _followOnMap = !_followOnMap),
                     tooltip: _followOnMap ? 'Suivi activé' : 'Activer le suivi',
                   ),
                   const SizedBox(height: 12),
                   _buildModernMapControl(
                     icon: Icons.layers_rounded,
-                    onTap: () {
-                      // TODO: Implement map layer switcher
-                    },
+                    onTap: () {},
                     tooltip: 'Changer de carte',
                   ),
                 ],
               ),
             ),
-            // Modern follow button
             Positioned(
               left: 20,
               right: 20,
               bottom: 20,
               child: _buildModernFollowButton(),
-            ),
-            // Map overlay gradient
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.black.withOpacity(0.1),
-                      Colors.transparent,
-                      Colors.transparent,
-                      Colors.black.withOpacity(0.1),
-                    ],
-                    stops: const [0.0, 0.1, 0.9, 1.0],
-                  ),
-                ),
-              ),
             ),
           ],
         ),
@@ -1046,30 +1320,70 @@ class _BoatDetailScreenState extends State<BoatDetailScreen>
   }
 
   Widget _buildModernBoatMarker() {
+    return AnimatedBuilder(
+      animation: Listenable.merge([_pulseController, _sonarController]),
+      builder: (context, child) {
+        return Stack(
+          alignment: Alignment.center,
+          children: [
+            // Sonar pulse circles - 3 expanding circles with fade out
+            _buildSonarCircle(0.0, 1.0), // First pulse
+            _buildSonarCircle(0.3, 0.8), // Second pulse (delayed)
+            _buildSonarCircle(0.6, 0.6), // Third pulse (delayed)
+            
+            // Original pulse ring
+            Container(
+              width: 55 + _pulseController.value * 10,
+              height: 55 + _pulseController.value * 10,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.blueAccent.withOpacity(
+                  0.2 - _pulseController.value * 0.15,
+                ),
+              ),
+            ),
+            // Boat icon container
+            Container(
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Colors.blueAccent, Colors.blue],
+                ),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.blueAccent.withOpacity(0.4),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              padding: const EdgeInsets.all(8),
+              child: const Icon(
+                Icons.directions_boat_filled,
+                color: Colors.white,
+                size: 28,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildSonarCircle(double delay, double maxOpacity) {
+    final adjustedValue = (_sonarController.value + delay) % 1.0;
+    final size = 30.0 + adjustedValue * 50.0; // Expand from 30 to 80
+    final opacity = maxOpacity * (1.0 - adjustedValue); // Fade out as it expands
+    
     return Container(
+      width: size,
+      height: size,
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF0D47A1), Color(0xFF1565C0)],
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: const Color(0xFF0EA5E9).withOpacity(opacity),
+          width: 2.0,
         ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF0D47A1).withOpacity(0.4),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(8),
-      child: const Icon(
-        Icons.directions_boat_filled,
-        color: Colors.white,
-        size: 28,
       ),
     );
   }
@@ -1115,11 +1429,8 @@ class _BoatDetailScreenState extends State<BoatDetailScreen>
   Widget _buildModernFollowButton() {
     return Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            const Color(0xFF0D47A1),
-            const Color(0xFF1565C0),
-          ],
+        gradient: const LinearGradient(
+          colors: [Color(0xFF0D47A1), Color(0xFF1565C0)],
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
@@ -1141,9 +1452,7 @@ class _BoatDetailScreenState extends State<BoatDetailScreen>
           ),
         ),
         onPressed: () {
-          setState(() {
-            _followOnMap = true;
-          });
+          setState(() => _followOnMap = true);
           _mapController.move(_currentPosition, _mapController.camera.zoom);
         },
         icon: const Icon(Icons.map_rounded, size: 20),
@@ -1160,19 +1469,14 @@ class _BoatDetailScreenState extends State<BoatDetailScreen>
   }
 }
 
-// Classe pour dessiner les vagues subtiles
 class SubtleWavePainter extends CustomPainter {
   final double animationValue;
-
   SubtleWavePainter(this.animationValue);
 
   @override
   void paint(Canvas canvas, Size size) {
     if (size.width == 0 || size.height == 0) return;
-    
     final paint = Paint()..style = PaintingStyle.fill;
-
-    // Vagues très subtiles avec transparence réduite
     _drawSubtleWave(
       canvas,
       size,
@@ -1181,7 +1485,6 @@ class SubtleWavePainter extends CustomPainter {
       animationValue * 2 * math.pi,
       30,
     );
-
     _drawSubtleWave(
       canvas,
       size,
@@ -1201,30 +1504,23 @@ class SubtleWavePainter extends CustomPainter {
     double amplitude,
   ) {
     if (size.width == 0 || size.height == 0) return;
-    
     final path = ui.Path();
     final y = size.height * yPosition;
     final waveLength = size.width / 3;
-
     path.moveTo(0, y);
-
-    // Dessiner la vague avec des courbes lisses
     for (double x = 0; x <= size.width; x += 3) {
-      final waveY = y +
-          math.sin((x / waveLength * 2 * math.pi) + phase) * amplitude;
-      path.lineTo(x, waveY);
+      path.lineTo(
+        x,
+        y + math.sin((x / waveLength * 2 * math.pi) + phase) * amplitude,
+      );
     }
-
-    // Fermer le chemin
     path.lineTo(size.width, size.height);
     path.lineTo(0, size.height);
     path.close();
-
     canvas.drawPath(path, paint);
   }
 
   @override
-  bool shouldRepaint(SubtleWavePainter oldDelegate) {
-    return oldDelegate.animationValue != animationValue;
-  }
+  bool shouldRepaint(SubtleWavePainter oldDelegate) =>
+      oldDelegate.animationValue != animationValue;
 }

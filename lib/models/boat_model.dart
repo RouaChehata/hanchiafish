@@ -24,6 +24,8 @@ class Boat {
     required this.crewMembers,
   });
 
+  get events => null;
+
   // Données de démonstration
   static List<Boat> getDemoBoats() {
     return [

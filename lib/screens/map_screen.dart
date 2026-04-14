@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import '../models/boat.dart';
+import '../models/boat_model.dart';
+import 'dart:async';
+import 'package:primaa/api_service.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -15,28 +17,73 @@ class _MapScreenState extends State<MapScreen> {
   final List<Boat> _boats = Boat.getDemoBoats();
   Boat? _selectedBoat;
 
+  Timer? _timer;
+LatLng _currentPosition = LatLng(33.5731, -7.5898);
+
+@override
+void initState() {
+  super.initState();
+  _loadGps();
+  // يجيب el position kol 5 thniya
+  _timer = Timer.periodic(const Duration(seconds: 5), (timer) {
+    _loadGps();
+  });
+}
+
+Future<void> _loadGps() async {
+  final data = await ApiService.getGps();
+  if (data != null) {
+    setState(() {
+      _currentPosition = LatLng(data['latitude'], data['longitude']);
+    });
+    _mapController.move(_currentPosition, 13);
+  }
+}
+
+@override
+void dispose() {
+  _timer?.cancel();
+  super.dispose();
+}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Carte des Bateaux',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        backgroundColor: const Color(0xFF1E3A8A),
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
+  title: const Text(
+    'Carte des Bateaux',
+    style: TextStyle(
+      fontWeight: FontWeight.bold,
+      color: Colors.white,
+    ),
+  ),
+  backgroundColor: const Color(0xFF1E3A8A),
+  elevation: 0,
+  iconTheme: const IconThemeData(color: Colors.white),
+  actions: [
+    IconButton(
+      icon: const Icon(Icons.my_location, color: Colors.white),
+      onPressed: _loadGps,
+    ),
+
+    IconButton(
+  icon: const Icon(Icons.location_city, color: Colors.white),
+  onPressed: () {
+    _mapController.move(
+      const LatLng(35.661970525816834, 10.958101377208251),
+      14,
+    );
+  },
+),
+  ],
+),
       body: Stack(
         children: [
           // Carte
           FlutterMap(
             mapController: _mapController,
             options: MapOptions(
-              initialCenter: LatLng(33.5731, -7.5898), // Casablanca
+              initialCenter:  _currentPosition, // Casablanca
               initialZoom: 10,
               interactionOptions: const InteractionOptions(
                 flags: InteractiveFlag.all,
@@ -52,23 +99,53 @@ class _MapScreenState extends State<MapScreen> {
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'com.example.primaa',
               ),
+              CircleLayer(
+                circles: [
+                  CircleMarker(
+      point: const LatLng(35.661970525816834, 10.958101377208251),
+      radius: 500,
+      useRadiusInMeter: true,
+      color: Colors.blue.withOpacity(0.2),
+      borderColor: Colors.blue,
+      borderStrokeWidth: 2,
+    ),
+  ],
+),
+  
               MarkerLayer(
-                markers: _boats.map((boat) {
-                  return Marker(
-                    width: 60,
-                    height: 60,
-                    point: LatLng(boat.latitude, boat.longitude),
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _selectedBoat = boat;
-                        });
-                      },
-                      child: _buildBoatMarker(boat),
-                    ),
-                  );
-                }).toList(),
+  markers: [
+    Marker(
+      width: 60,
+      height: 60,
+      point: _currentPosition,
+      child: GestureDetector(
+        onTap: () {},
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.3),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
               ),
+            ],
+            border: Border.all(
+              color: Colors.green,
+              width: 3,
+            ),
+          ),
+          child: const Icon(
+            Icons.directions_boat_filled,
+            color: Colors.green,
+            size: 30,
+          ),
+        ),
+      ),
+    ),
+  ],
+),
             ],
           ),
           // Panneau d'information du bateau sélectionné
