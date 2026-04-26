@@ -123,10 +123,10 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
       await firebase_auth.FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
-);
+      );
 
       // Navigate with a smoother transition
-      Navigator.pushReplacement(
+      Navigator.pushAndRemoveUntil(
         context,
         PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) =>
@@ -153,6 +153,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
           },
           transitionDuration: const Duration(milliseconds: 800),
         ),
+        (route) => false,
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(

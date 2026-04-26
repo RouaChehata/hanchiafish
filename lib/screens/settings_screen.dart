@@ -1,4 +1,123 @@
 import 'package:flutter/material.dart';
+import 'package:primaa/api_service.dart';
+
+// Design System - Colors
+class AppColors {
+  static const Color primary = Color(0xFF1E3A8A);
+  static const Color primaryLight = Color(0xFF3B82F6);
+  static const Color accent = Color(0xFF77C0D8);
+  static const Color success = Color(0xFF10B981);
+  static const Color warning = Color(0xFFF59E0B);
+  static const Color error = Color(0xFFE11D48);
+  static const Color surface = Color(0xFFF5F7FA);
+  static const Color background = Color(0xFFFFFFFF);
+  static const Color textPrimary = Color(0xFF1E293B);
+  static const Color textSecondary = Color(0xFF64748B);
+  static const Color textTertiary = Color(0xFF94A3B8);
+  static const Color textOnPrimary = Color(0xFFFFFFFF);
+  static const Color border = Color(0xFFE2E8F0);
+  static const Color shadow = Color(0x0A000000);
+}
+
+// Design System - Typography
+class AppTextStyles {
+  static const TextStyle h1 = TextStyle(
+    fontSize: 32,
+    fontWeight: FontWeight.w800,
+    color: AppColors.textPrimary,
+    letterSpacing: -1.0,
+  );
+  
+  static const TextStyle h2 = TextStyle(
+    fontSize: 24,
+    fontWeight: FontWeight.w700,
+    color: AppColors.textPrimary,
+    letterSpacing: -0.5,
+  );
+  
+  static const TextStyle h3 = TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.w600,
+    color: AppColors.textPrimary,
+  );
+  
+  static const TextStyle h4 = TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.w600,
+    color: AppColors.textPrimary,
+  );
+  
+  static const TextStyle body1 = TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.w500,
+    color: AppColors.textPrimary,
+  );
+  
+  static const TextStyle body2 = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w400,
+    color: AppColors.textPrimary,
+  );
+  
+  static const TextStyle caption = TextStyle(
+    fontSize: 12,
+    fontWeight: FontWeight.w500,
+    color: AppColors.textSecondary,
+  );
+  
+  static const TextStyle small = TextStyle(
+    fontSize: 10,
+    fontWeight: FontWeight.w400,
+    color: AppColors.textTertiary,
+  );
+  
+  static TextStyle appBarTitle = const TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.w600,
+    color: AppColors.textOnPrimary,
+  );
+  
+  static TextStyle sectionTitle = const TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.w600,
+    color: AppColors.textPrimary,
+  );
+  
+  static TextStyle settingTitle = const TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w500,
+    color: AppColors.textPrimary,
+  );
+  
+  static TextStyle settingSubtitle = const TextStyle(
+    fontSize: 12,
+    fontWeight: FontWeight.w400,
+    color: AppColors.textSecondary,
+  );
+}
+
+// Design System - Spacing
+class AppSpacing {
+  static const double xs = 4.0;
+  static const double sm = 8.0;
+  static const double md = 12.0;
+  static const double lg = 16.0;
+  static const double xl = 20.0;
+  static const double xxl = 24.0;
+  static const double xxxl = 32.0;
+  static const double huge = 40.0;
+  static const double massive = 48.0;
+}
+
+// Design System - Border Radius
+class AppBorderRadius {
+  static const double sm = 8.0;
+  static const double md = 12.0;
+  static const double lg = 16.0;
+  static const double xl = 20.0;
+  static const double xxl = 24.0;
+  static const double round = 100.0;
+}
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -20,16 +139,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Paramètres',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                const Color(0xFF1E3A8A).withOpacity(0.85),
+                const Color(0xFF3B82F6).withOpacity(0.6),
+              ],
+            ),
           ),
         ),
-        backgroundColor: const Color(0xFF1E3A8A),
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: const IconThemeData(color: AppColors.textOnPrimary),
+        title: Text(
+          'Paramètres',
+          style: AppTextStyles.appBarTitle,
+        ),
       ),
       body: Container(
         decoration: const BoxDecoration(
@@ -37,9 +165,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF1E3A8A),
-              Color(0xFF3B82F6),
-              Color(0xFFE0F2FE),
+              AppColors.primary,
+              AppColors.primaryLight,
+              AppColors.surface,
             ],
             stops: [0.0, 0.3, 1.0],
           ),
@@ -53,10 +181,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Container(
                 margin: const EdgeInsets.only(top: 20),
                 decoration: const BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.background,
                   borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(30),
-                    topRight: Radius.circular(30),
+                    topLeft: Radius.circular(AppBorderRadius.xxl),
+                    topRight: Radius.circular(AppBorderRadius.xxl),
                   ),
                 ),
                 child: ListView(
@@ -212,18 +340,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
         children: [
           const CircleAvatar(
             radius: 50,
-            backgroundColor: Colors.white,
+            backgroundColor: AppColors.background,
             child: Icon(
               Icons.person,
               size: 60,
-              color: Color(0xFF1E3A8A),
+              color: AppColors.primary,
             ),
           ),
           const SizedBox(height: 16),
           const Text(
             'Utilisateur',
             style: TextStyle(
-              color: Colors.white,
+              color: AppColors.textOnPrimary,
               fontSize: 24,
               fontWeight: FontWeight.bold,
             ),
@@ -232,7 +360,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Text(
             'user@hanchiafish.com',
             style: TextStyle(
-              color: Colors.white.withOpacity(0.9),
+              color: AppColors.textOnPrimary.withOpacity(0.9),
               fontSize: 14,
             ),
           ),
@@ -246,11 +374,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       padding: const EdgeInsets.only(top: 16, bottom: 8, left: 4),
       child: Text(
         title,
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-          color: Color(0xFF1E3A8A),
-        ),
+        style: AppTextStyles.sectionTitle,
       ),
     );
   }
@@ -441,7 +565,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.red.withOpacity(0.2),
+            color: AppColors.shadow,
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),

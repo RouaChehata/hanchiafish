@@ -5,6 +5,122 @@ import 'package:http/http.dart' as http;
 import '../models/boat_model.dart';
 import 'package:primaa/api_service.dart';
 
+// Design System - Colors
+class AppColors {
+  static const Color primary = Color(0xFF1E3A8A);
+  static const Color primaryLight = Color(0xFF3B82F6);
+  static const Color accent = Color(0xFF77C0D8);
+  static const Color success = Color(0xFF10B981);
+  static const Color warning = Color(0xFFF59E0B);
+  static const Color error = Color(0xFFE11D48);
+  static const Color surface = Color(0xFFF5F7FA);
+  static const Color background = Color(0xFFFFFFFF);
+  static const Color textPrimary = Color(0xFF1E293B);
+  static const Color textSecondary = Color(0xFF64748B);
+  static const Color textTertiary = Color(0xFF94A3B8);
+  static const Color textOnPrimary = Color(0xFFFFFFFF);
+  static const Color border = Color(0xFFE2E8F0);
+  static const Color shadow = Color(0x0A000000);
+  
+  // Camera specific colors
+  static const Color cameraActive = Color(0xFF10B981);
+  static const Color cameraInactive = Color(0xFF94A3B8);
+  static const Color cameraIntrusion = Color(0xFFE11D48);
+}
+
+// Design System - Typography
+class AppTextStyles {
+  static const TextStyle h1 = TextStyle(
+    fontSize: 32,
+    fontWeight: FontWeight.w800,
+    color: AppColors.textPrimary,
+    letterSpacing: -1.0,
+  );
+  
+  static const TextStyle h2 = TextStyle(
+    fontSize: 24,
+    fontWeight: FontWeight.w700,
+    color: AppColors.textPrimary,
+    letterSpacing: -0.5,
+  );
+  
+  static const TextStyle h3 = TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.w600,
+    color: AppColors.textPrimary,
+  );
+  
+  static const TextStyle h4 = TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.w600,
+    color: AppColors.textPrimary,
+  );
+  
+  static const TextStyle body1 = TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.w500,
+    color: AppColors.textPrimary,
+  );
+  
+  static const TextStyle body2 = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w400,
+    color: AppColors.textPrimary,
+  );
+  
+  static const TextStyle caption = TextStyle(
+    fontSize: 12,
+    fontWeight: FontWeight.w500,
+    color: AppColors.textSecondary,
+  );
+  
+  static const TextStyle small = TextStyle(
+    fontSize: 10,
+    fontWeight: FontWeight.w400,
+    color: AppColors.textTertiary,
+  );
+  
+  static TextStyle appBarTitle = const TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.w600,
+    color: AppColors.textOnPrimary,
+  );
+  
+  static TextStyle liveBadge = const TextStyle(
+    fontSize: 10,
+    fontWeight: FontWeight.bold,
+    color: AppColors.textOnPrimary,
+  );
+  
+  static TextStyle statusBadge = const TextStyle(
+    fontSize: 11,
+    fontWeight: FontWeight.bold,
+  );
+}
+
+// Design System - Spacing
+class AppSpacing {
+  static const double xs = 4.0;
+  static const double sm = 8.0;
+  static const double md = 12.0;
+  static const double lg = 16.0;
+  static const double xl = 20.0;
+  static const double xxl = 24.0;
+  static const double xxxl = 32.0;
+  static const double huge = 40.0;
+  static const double massive = 48.0;
+}
+
+// Design System - Border Radius
+class AppBorderRadius {
+  static const double sm = 8.0;
+  static const double md = 12.0;
+  static const double lg = 16.0;
+  static const double xl = 20.0;
+  static const double xxl = 24.0;
+  static const double round = 100.0;
+}
+
 class CamerasScreen extends StatefulWidget {
   const CamerasScreen({super.key});
 
@@ -68,16 +184,28 @@ class _CamerasScreenState extends State<CamerasScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Caméras',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-        ),
-        backgroundColor: const Color(0xFF1E3A8A),
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
+        backgroundColor: Colors.transparent,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                const Color(0xFF1E3A8A).withOpacity(0.85),
+                const Color(0xFF3B82F6).withOpacity(0.6),
+              ],
+            ),
+          ),
+        ),
+        iconTheme: const IconThemeData(color: AppColors.textOnPrimary),
+        title: Text(
+          'Caméras',
+          style: AppTextStyles.appBarTitle,
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.white),
+            icon: const Icon(Icons.refresh, color: AppColors.textOnPrimary),
             onPressed: _loadCameraImage,
           ),
         ],
@@ -87,7 +215,7 @@ class _CamerasScreenState extends State<CamerasScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF1E3A8A), Color(0xFF3B82F6), Color(0xFFE0F2FE)],
+            colors: [AppColors.primary, AppColors.primaryLight, AppColors.surface],
             stops: [0.0, 0.3, 1.0],
           ),
         ),
@@ -100,8 +228,8 @@ class _CamerasScreenState extends State<CamerasScreen> {
                 decoration: const BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(30),
-                    topRight: Radius.circular(30),
+                    topLeft: Radius.circular(AppBorderRadius.xxl),
+                    topRight: Radius.circular(AppBorderRadius.xxl),
                   ),
                 ),
                 child: SingleChildScrollView(
@@ -115,11 +243,7 @@ class _CamerasScreenState extends State<CamerasScreen> {
                           children: [
                             const Text(
                               'Caméra RPi — EN DIRECT',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF1E3A8A),
-                              ),
+                              style: AppTextStyles.h3,
                             ),
                             const Spacer(),
                             if (_intrusion)
@@ -127,16 +251,16 @@ class _CamerasScreenState extends State<CamerasScreen> {
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 10, vertical: 6),
                                 decoration: BoxDecoration(
-                                  color: Colors.red,
+                                  color: AppColors.error,
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: const Row(
                                   children: [
-                                    Icon(Icons.warning, color: Colors.white, size: 14),
+                                    Icon(Icons.warning, color: AppColors.textOnPrimary, size: 14),
                                     SizedBox(width: 4),
                                     Text('INTRUSION',
                                         style: TextStyle(
-                                            color: Colors.white,
+                                            color: AppColors.textOnPrimary,
                                             fontSize: 11,
                                             fontWeight: FontWeight.bold)),
                                   ],
@@ -157,24 +281,20 @@ class _CamerasScreenState extends State<CamerasScreen> {
                           children: [
                             const Text(
                               'Caméras Actives',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF1E3A8A),
-                              ),
+                              style: AppTextStyles.h3,
                             ),
                             const Spacer(),
                             Container(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 12, vertical: 6),
                               decoration: BoxDecoration(
-                                color: Colors.green.withOpacity(0.1),
+                                color: AppColors.success.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(
                                 '${activeCameras.length} actives',
                                 style: const TextStyle(
-                                  color: Colors.green,
+                                  color: AppColors.success,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 12,
                                 ),

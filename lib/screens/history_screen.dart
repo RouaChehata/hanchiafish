@@ -2,6 +2,117 @@ import 'package:flutter/material.dart';
 import 'package:primaa/api_service.dart';
 import '../models/boat_model.dart';
 
+// Design System - Colors
+class AppColors {
+  static const Color primary = Color(0xFF1E3A8A);
+  static const Color primaryLight = Color(0xFF3B82F6);
+  static const Color accent = Color(0xFF77C0D8);
+  static const Color success = Color(0xFF10B981);
+  static const Color warning = Color(0xFFF59E0B);
+  static const Color error = Color(0xFFE11D48);
+  static const Color surface = Color(0xFFF5F7FA);
+  static const Color background = Color(0xFFFFFFFF);
+  static const Color textPrimary = Color(0xFF1E293B);
+  static const Color textSecondary = Color(0xFF64748B);
+  static const Color textTertiary = Color(0xFF94A3B8);
+  static const Color textOnPrimary = Color(0xFFFFFFFF);
+  static const Color border = Color(0xFFE2E8F0);
+  static const Color shadow = Color(0x0A000000);
+  
+  // Status colors
+  static const Color statusAtSea = Color(0xFF10B981);
+  static const Color statusAtPort = Color(0xFFF59E0B);
+  static const Color statusMaintenance = Color(0xFFE11D48);
+  static const Color statusInactive = Color(0xFF94A3B8);
+}
+
+// Design System - Typography
+class AppTextStyles {
+  static const TextStyle h1 = TextStyle(
+    fontSize: 32,
+    fontWeight: FontWeight.w800,
+    color: AppColors.textPrimary,
+    letterSpacing: -1.0,
+  );
+  
+  static const TextStyle h2 = TextStyle(
+    fontSize: 24,
+    fontWeight: FontWeight.w700,
+    color: AppColors.textPrimary,
+    letterSpacing: -0.5,
+  );
+  
+  static const TextStyle h3 = TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.w600,
+    color: AppColors.textPrimary,
+  );
+  
+  static const TextStyle h4 = TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.w600,
+    color: AppColors.textPrimary,
+  );
+  
+  static const TextStyle body1 = TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.w500,
+    color: AppColors.textPrimary,
+  );
+  
+  static const TextStyle body2 = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w400,
+    color: AppColors.textPrimary,
+  );
+  
+  static const TextStyle caption = TextStyle(
+    fontSize: 12,
+    fontWeight: FontWeight.w500,
+    color: AppColors.textSecondary,
+  );
+  
+  static const TextStyle small = TextStyle(
+    fontSize: 10,
+    fontWeight: FontWeight.w400,
+    color: AppColors.textTertiary,
+  );
+  
+  static TextStyle appBarTitle = const TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.w600,
+    color: AppColors.textOnPrimary,
+  );
+  
+  static TextStyle statusBadge = const TextStyle(
+    fontSize: 11,
+    fontWeight: FontWeight.bold,
+  );
+}
+
+// Design System - Spacing
+class AppSpacing {
+  static const double xs = 4.0;
+  static const double sm = 8.0;
+  static const double md = 12.0;
+  static const double lg = 16.0;
+  static const double xl = 20.0;
+  static const double xxl = 24.0;
+  static const double xxxl = 32.0;
+  static const double huge = 40.0;
+  static const double massive = 48.0;
+}
+
+// Design System - Border Radius
+class AppBorderRadius {
+  static const double sm = 8.0;
+  static const double md = 12.0;
+  static const double lg = 16.0;
+  static const double xl = 20.0;
+  static const double xxl = 24.0;
+  static const double round = 100.0;
+}
+
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
 
@@ -36,19 +147,28 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Historique',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                const Color(0xFF1E3A8A).withOpacity(0.85),
+                const Color(0xFF3B82F6).withOpacity(0.6),
+              ],
+            ),
           ),
         ),
-        backgroundColor: const Color(0xFF1E3A8A),
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: IconThemeData(color: AppColors.textOnPrimary),
+        title: Text(
+          'Historique',
+          style: AppTextStyles.appBarTitle,
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.white),
+            icon: const Icon(Icons.refresh, color: AppColors.textOnPrimary),
             onPressed: _loadHistory,
           ),
         ],
@@ -59,9 +179,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF1E3A8A),
-              Color(0xFF3B82F6),
-              Color(0xFFE0F2FE),
+              AppColors.primary,
+              AppColors.primaryLight,
+              AppColors.surface,
             ],
             stops: [0.0, 0.3, 1.0],
           ),
@@ -75,11 +195,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
+                      color: AppColors.background,
+                      borderRadius: BorderRadius.circular(AppBorderRadius.lg),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
+                          color: AppColors.shadow,
                           blurRadius: 8,
                           offset: const Offset(0, 4),
                         ),
@@ -138,8 +258,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 decoration: const BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(30),
-                    topRight: Radius.circular(30),
+                    topLeft: Radius.circular(AppBorderRadius.xxl),
+                    topRight: Radius.circular(AppBorderRadius.xxl),
                   ),
                 ),
                 child: _isLoading
@@ -149,13 +269,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.history, size: 80, color: Colors.grey[400]),
+                                Icon(Icons.history, size: 80, color: AppColors.textTertiary),
                                 const SizedBox(height: 16),
                                 Text(
                                   'Aucun historique',
                                   style: TextStyle(
                                     fontSize: 18,
-                                    color: Colors.grey[600],
+                                    color: AppColors.textSecondary,
                                   ),
                                 ),
                               ],
@@ -183,13 +303,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                         vertical: 6,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFF1E3A8A).withOpacity(0.1),
+                                        color: AppColors.primary.withOpacity(0.1),
                                         borderRadius: BorderRadius.circular(20),
                                       ),
                                       child: Text(
                                         '${_historyData.length} points',
                                         style: const TextStyle(
-                                          color: Color(0xFF1E3A8A),
+                                          color: AppColors.primary,
                                           fontWeight: FontWeight.bold,
                                           fontSize: 12,
                                         ),
@@ -244,10 +364,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: isSelected ? Colors.white : Colors.white.withOpacity(0.7),
-            borderRadius: BorderRadius.circular(12),
+            color: isSelected ? AppColors.background : AppColors.background.withOpacity(0.7),
+            borderRadius: BorderRadius.circular(AppBorderRadius.md),
             border: Border.all(
-              color: isSelected ? const Color(0xFF1E3A8A) : Colors.grey[300]!,
+              color: isSelected ? AppColors.primary : AppColors.border,
               width: isSelected ? 2 : 1,
             ),
           ),
@@ -257,7 +377,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             style: TextStyle(
               fontSize: 14,
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              color: isSelected ? const Color(0xFF1E3A8A) : Colors.grey[700],
+              color: isSelected ? AppColors.primary : AppColors.textSecondary,
             ),
           ),
         ),
@@ -270,16 +390,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(AppBorderRadius.lg),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: AppColors.shadow,
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
         ],
-        border: Border.all(color: Colors.grey[200]!),
+        border: Border.all(color: AppColors.border),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -291,12 +411,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 height: 12,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isFirst ? Colors.green : const Color(0xFF1E3A8A),
-                  border: Border.all(color: Colors.white, width: 2),
+                  color: isFirst ? AppColors.success : AppColors.primary,
+                  border: Border.all(color: AppColors.background, width: 2),
                 ),
               ),
               if (!isLast)
-                Container(width: 2, height: 60, color: Colors.grey[300]),
+                Container(width: 2, height: 60, color: AppColors.border),
             ],
           ),
           const SizedBox(width: 16),
@@ -318,7 +438,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: Colors.green.withOpacity(0.1),
+                        color: AppColors.success.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -326,26 +446,26 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         style: const TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
-                          color: Colors.green,
+                          color: AppColors.success,
                         ),
                       ),
                     ),
                     const Spacer(),
                     Text(
                       data['date'],
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      style: AppTextStyles.caption,
                     ),
                   ],
                 ),
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    Icon(Icons.location_on, size: 16, color: Colors.grey[600]),
+                    Icon(Icons.location_on, size: 16, color: AppColors.textSecondary),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
                         'Lat: ${data['latitude'].toStringAsFixed(5)}, Lng: ${data['longitude'].toStringAsFixed(5)}',
-                        style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                        style: AppTextStyles.caption,
                       ),
                     ),
                   ],

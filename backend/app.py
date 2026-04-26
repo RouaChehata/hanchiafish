@@ -36,7 +36,7 @@ def check_security_mode(in_port, conn):
     if not in_port:
         return
     current_hour = datetime.now().hour
-    if current_hour >= 18:
+    if current_hour >= 0:
         c = conn.cursor()
         c.execute("""SELECT * FROM alertes WHERE type='Mode Sécurité' 
                      AND date(timestamp)=date('now')""")

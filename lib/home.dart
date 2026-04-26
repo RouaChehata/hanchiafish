@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:video_player/video_player.dart';
 import 'package:primaa/boat_detail_screen.dart';
 import 'package:primaa/models/boat_model.dart';
 import 'package:primaa/screens/map_screen.dart';
@@ -10,6 +12,139 @@ import 'package:primaa/screens/notifications_screen.dart';
 import 'package:primaa/add_boat_dialog.dart';
 import 'package:primaa/screens/statistics_screen.dart';
 
+// Design System - Colors
+class AppColors {
+  static const Color primary = Color(0xFF1E3A8A);
+  static const Color primaryLight = Color(0xFF3B82F6);
+  static const Color accent = Color(0xFF77C0D8);
+  static const Color success = Color(0xFF10B981);
+  static const Color warning = Color(0xFFF59E0B);
+  static const Color error = Color(0xFFE11D48);
+  static const Color surface = Color(0xFFF5F7FA);
+  static const Color background = Color(0xFFFFFFFF);
+  static const Color textPrimary = Color(0xFF1E293B);
+  static const Color textSecondary = Color(0xFF64748B);
+  static const Color textTertiary = Color(0xFF94A3B8);
+  static const Color textOnPrimary = Color(0xFFFFFFFF);
+  static const Color border = Color(0xFFE2E8F0);
+  static const Color shadow = Color(0x0A000000);
+
+  // Status colors
+  static const Color statusAtSea = Color(0xFF10B981);
+  static const Color statusAtPort = Color(0xFFF59E0B);
+  static const Color statusMaintenance = Color(0xFFE11D48);
+  static const Color statusInactive = Color(0xFF94A3B8);
+}
+
+// Design System - Typography
+class AppTextStyles {
+  static const TextStyle h1 = TextStyle(
+    fontSize: 32,
+    fontWeight: FontWeight.w800,
+    color: AppColors.textPrimary,
+    letterSpacing: -1.0,
+  );
+
+  static const TextStyle h2 = TextStyle(
+    fontSize: 24,
+    fontWeight: FontWeight.w700,
+    color: AppColors.textPrimary,
+    letterSpacing: -0.5,
+  );
+
+  static const TextStyle h3 = TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.w600,
+    color: AppColors.textPrimary,
+  );
+
+  static const TextStyle h4 = TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.w600,
+    color: AppColors.textPrimary,
+  );
+
+  static const TextStyle body1 = TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.w500,
+    color: AppColors.textPrimary,
+  );
+
+  static const TextStyle body2 = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w400,
+    color: AppColors.textPrimary,
+  );
+
+  static const TextStyle caption = TextStyle(
+    fontSize: 12,
+    fontWeight: FontWeight.w500,
+    color: AppColors.textSecondary,
+  );
+
+  static const TextStyle small = TextStyle(
+    fontSize: 10,
+    fontWeight: FontWeight.w400,
+    color: AppColors.textTertiary,
+  );
+
+  static TextStyle appBarTitle = GoogleFonts.inter(
+    fontSize: 20,
+    fontWeight: FontWeight.w600,
+    color: AppColors.textOnPrimary,
+  );
+
+  static TextStyle dashboardTitle = GoogleFonts.bebasNeue(
+    fontSize: 28,
+    fontWeight: FontWeight.w700,
+    color: AppColors.textOnPrimary,
+    letterSpacing: 1.5,
+  );
+
+  static TextStyle metricValue = GoogleFonts.inter(
+    fontSize: 32,
+    fontWeight: FontWeight.w800,
+    color: AppColors.textOnPrimary,
+    letterSpacing: -1,
+  );
+
+  static TextStyle metricLabel = GoogleFonts.inter(
+    fontSize: 14,
+    fontWeight: FontWeight.w600,
+    color: AppColors.textOnPrimary,
+    letterSpacing: 0.2,
+  );
+
+  static TextStyle metricSubtitle = GoogleFonts.inter(
+    fontSize: 12,
+    fontWeight: FontWeight.w500,
+    color: AppColors.textOnPrimary.withOpacity(0.6),
+  );
+}
+
+// Design System - Spacing
+class AppSpacing {
+  static const double xs = 4.0;
+  static const double sm = 8.0;
+  static const double md = 12.0;
+  static const double lg = 16.0;
+  static const double xl = 20.0;
+  static const double xxl = 24.0;
+  static const double xxxl = 32.0;
+  static const double huge = 40.0;
+  static const double massive = 48.0;
+}
+
+// Design System - Border Radius
+class AppBorderRadius {
+  static const double sm = 8.0;
+  static const double md = 12.0;
+  static const double lg = 16.0;
+  static const double xl = 20.0;
+  static const double xxl = 24.0;
+  static const double round = 100.0;
+}
+
 class Home extends StatefulWidget {
   final String userEmail;
 
@@ -19,13 +154,55 @@ class Home extends StatefulWidget {
   State<Home> createState() => _HomeState();
 }
 
-class _HomeState extends State<Home> {
-  final List<Boat> boats = Boat.getDemoBoats();
-  String _selectedFilter = 'Tous'; // Tous, En mer, Au port, En maintenance
+class VideoBackground extends StatefulWidget {
+  const VideoBackground({super.key});
+
+  @override
+  State<VideoBackground> createState() => VideoBackgroundState();
+}
+
+class VideoBackgroundState extends State<VideoBackground> {
+  static VideoPlayerController? _staticController;
+  static bool _isInitialized = false;
+  static int _playCount = 0;
 
   @override
   void initState() {
     super.initState();
+    _initVideo();
+  }
+
+  Future<void> _initVideo() async {
+    if (_isInitialized &&
+        _staticController != null &&
+        _staticController!.value.isInitialized) {
+      if (mounted) setState(() {});
+      return;
+    }
+
+    _staticController = VideoPlayerController.asset('assets/videos/home.mp4');
+    await _staticController!.initialize();
+    _staticController!.addListener(_videoListener);
+    _staticController!.play();
+    _isInitialized = true;
+    if (mounted) setState(() {});
+  }
+
+  void _videoListener() {
+    if (_staticController == null || !_staticController!.value.isInitialized)
+      return;
+
+    if (_staticController!.value.position >=
+            _staticController!.value.duration &&
+        _playCount < 1) {
+      _playCount++;
+      _staticController!.seekTo(Duration.zero);
+      _staticController!.play();
+    } else if (_playCount >= 1 &&
+        _staticController!.value.position >=
+            _staticController!.value.duration) {
+      _staticController!.pause();
+    }
   }
 
   @override
@@ -35,34 +212,76 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
+    if (!_isInitialized ||
+        _staticController == null ||
+        !_staticController!.value.isInitialized) {
+      return Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              AppColors.surface,
+              AppColors.primaryLight.withOpacity(0.1),
+              AppColors.primary.withOpacity(0.05),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        FittedBox(
+          fit: BoxFit.cover,
+          child: SizedBox(
+            width: _staticController!.value.size.width,
+            height: _staticController!.value.size.height,
+            child: VideoPlayer(_staticController!),
+          ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Colors.transparent, Colors.black.withOpacity(0.3)],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _HomeState extends State<Home> {
+  final List<Boat> boats = Boat.getDemoBoats();
+  String _selectedFilter = 'Tous';
+
+  @override
+  Widget build(BuildContext context) {
     final filteredBoats = _getFilteredBoats();
     final stats = _calculateStats();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: AppColors.surface,
       appBar: _buildAppBar(),
       drawer: _buildDrawer(),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: FloatingActionButton(
         heroTag: 'addBoatFab',
         onPressed: _addBoat,
-        backgroundColor: const Color.fromARGB(255, 119, 192, 216),
+        backgroundColor: AppColors.primary,
         child: const Icon(Icons.add),
       ),
       body: Stack(
         children: [
-          // Arrière-plan simple avec gradient
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0xFFF5F7FA),
-                  Color(0xFFE8F2FD),
-                  Color(0xFFDBEAFE),
-                ],
-              ),
+          Positioned.fill(child: VideoBackground()),
+          // Overlay semi-transparent pour améliorer la lisibilité
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(color: Colors.black.withOpacity(0.3)),
             ),
           ),
           // Contenu principal
@@ -142,56 +361,105 @@ class _HomeState extends State<Home> {
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       elevation: 0,
-      backgroundColor: const Color.fromARGB(255, 119, 192, 216),
+      backgroundColor: Colors.transparent,
+      flexibleSpace: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              const Color(0xFF1E3A8A).withOpacity(0.85),
+              const Color(0xFF3B82F6).withOpacity(0.6),
+            ],
+          ),
+        ),
+      ),
       iconTheme: const IconThemeData(color: Colors.white),
-      title: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      title: Row(
         children: [
-          Text(
-            'Tableau de bord',
-            style: GoogleFonts.bebasNeue(
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.2),
+                width: 1,
+              ),
+            ),
+            child: const Icon(
+              Icons.directions_boat_filled,
               color: Colors.white,
-              fontSize: 28,
-              letterSpacing: 1.5,
+              size: 20,
             ),
           ),
-          Text(
-            'Bienvenue, ${widget.userEmail.split('@')[0]}',
-            style: TextStyle(color: Colors.white70, fontSize: 12),
+          const SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'HanchiaFish',
+                style: GoogleFonts.bebasNeue(
+                  color: Colors.white,
+                  fontSize: 22,
+                  letterSpacing: 2,
+                ),
+              ),
+              Text(
+                'Bienvenue, ${widget.userEmail.split('@')[0]}',
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.75),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+            ],
           ),
         ],
       ),
       actions: [
+        // Notification button
         Stack(
           children: [
-            IconButton(
-              icon: const Icon(Icons.notifications_outlined),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const NotificationsScreen(),
-                  ),
-                );
-              },
-              color: Colors.white,
+            Container(
+              margin: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.2),
+                  width: 1,
+                ),
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.notifications_outlined),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const NotificationsScreen(),
+                    ),
+                  );
+                },
+                color: Colors.white,
+              ),
             ),
             Positioned(
               right: 8,
               top: 8,
               child: Container(
-                width: 8,
-                height: 8,
+                width: 10,
+                height: 10,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE11D48),
+                  color: AppColors.error,
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 2),
+                  border: Border.all(color: Colors.white, width: 1.5),
                 ),
               ),
             ),
           ],
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 4),
       ],
     );
   }
@@ -204,12 +472,7 @@ class _HomeState extends State<Home> {
         children: [
           Text(
             'Vue d\'ensemble',
-            style: GoogleFonts.inter(
-              fontSize: 24,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-              letterSpacing: -0.5,
-            ),
+            style: AppTextStyles.h2.copyWith(color: AppColors.textOnPrimary),
           ),
           const SizedBox(height: 24),
           // Cartes modernes avec effet glassmorphism
@@ -221,10 +484,10 @@ class _HomeState extends State<Home> {
                   stats['active'].toString(),
                   '${stats['total']} bateaux',
                   Icons.directions_boat,
-                  const Color(0xFF3B82F6),
+                  AppColors.primaryLight,
                   [
-                    const Color(0xFF3B82F6).withOpacity(0.1),
-                    const Color(0xFF1D4ED8).withOpacity(0.05),
+                    AppColors.primaryLight.withOpacity(0.1),
+                    AppColors.primary.withOpacity(0.05),
                   ],
                 ),
               ),
@@ -235,10 +498,10 @@ class _HomeState extends State<Home> {
                   stats['cameras'].toString(),
                   '${stats['total']} total',
                   Icons.videocam,
-                  const Color(0xFF10B981),
+                  AppColors.success,
                   [
-                    const Color(0xFF10B981).withOpacity(0.1),
-                    const Color(0xFF059669).withOpacity(0.05),
+                    AppColors.success.withOpacity(0.1),
+                    AppColors.success.withOpacity(0.05),
                   ],
                 ),
               ),
@@ -393,14 +656,7 @@ class _HomeState extends State<Home> {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       child: Row(
         children: [
-          const Text(
-            'Flotte',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1E3A8A),
-            ),
-          ),
+          const Text('Flotte', style: AppTextStyles.h4),
           const SizedBox(width: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -444,7 +700,7 @@ class _HomeState extends State<Home> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF1E3A8A) : Colors.grey[200],
+          color: isSelected ? AppColors.primary : AppColors.border,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
@@ -452,7 +708,9 @@ class _HomeState extends State<Home> {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: isSelected ? Colors.white : Colors.grey[700],
+            color: isSelected
+                ? AppColors.textOnPrimary
+                : AppColors.textSecondary,
           ),
         ),
       ),
@@ -552,7 +810,7 @@ class _HomeState extends State<Home> {
                       width: 40, // Réduit de 50 à 45
                       height: 40, // Réduit de 50 à 45
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1E3A8A).withOpacity(0.1),
+                        color: AppColors.primary.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: ClipRRect(
@@ -750,7 +1008,7 @@ class _HomeState extends State<Home> {
 
   Widget _buildDrawer() {
     return Drawer(
-      backgroundColor: const Color.fromARGB(255, 30, 58, 138),
+      backgroundColor: AppColors.primary,
       child: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(

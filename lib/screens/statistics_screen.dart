@@ -1,5 +1,132 @@
 import 'package:flutter/material.dart';
 import 'package:primaa/api_service.dart';
+import '../models/boat_model.dart';
+
+// Design System - Colors
+class AppColors {
+  static const Color primary = Color(0xFF1E3A8A);
+  static const Color primaryLight = Color(0xFF3B82F6);
+  static const Color accent = Color(0xFF77C0D8);
+  static const Color success = Color(0xFF10B981);
+  static const Color warning = Color(0xFFF59E0B);
+  static const Color error = Color(0xFFE11D48);
+  static const Color surface = Color(0xFFF5F7FA);
+  static const Color background = Color(0xFFFFFFFF);
+  static const Color textPrimary = Color(0xFF1E293B);
+  static const Color textSecondary = Color(0xFF64748B);
+  static const Color textTertiary = Color(0xFF94A3B8);
+  static const Color textOnPrimary = Color(0xFFFFFFFF);
+  static const Color border = Color(0xFFE2E8F0);
+  static const Color shadow = Color(0x0A000000);
+  
+  // Status colors
+  static const Color statusAtSea = Color(0xFF10B981);
+  static const Color statusAtPort = Color(0xFFF59E0B);
+  static const Color statusMaintenance = Color(0xFFE11D48);
+  static const Color statusInactive = Color(0xFF94A3B8);
+}
+
+// Design System - Typography
+class AppTextStyles {
+  static const TextStyle h1 = TextStyle(
+    fontSize: 32,
+    fontWeight: FontWeight.w800,
+    color: AppColors.textPrimary,
+    letterSpacing: -1.0,
+  );
+  
+  static const TextStyle h2 = TextStyle(
+    fontSize: 24,
+    fontWeight: FontWeight.w700,
+    color: AppColors.textPrimary,
+    letterSpacing: -0.5,
+  );
+  
+  static const TextStyle h3 = TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.w600,
+    color: AppColors.textPrimary,
+  );
+  
+  static const TextStyle h4 = TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.w600,
+    color: AppColors.textPrimary,
+  );
+  
+  static const TextStyle body1 = TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.w500,
+    color: AppColors.textPrimary,
+  );
+  
+  static const TextStyle body2 = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w400,
+    color: AppColors.textPrimary,
+  );
+  
+  static const TextStyle caption = TextStyle(
+    fontSize: 12,
+    fontWeight: FontWeight.w500,
+    color: AppColors.textSecondary,
+  );
+  
+  static const TextStyle small = TextStyle(
+    fontSize: 10,
+    fontWeight: FontWeight.w400,
+    color: AppColors.textTertiary,
+  );
+  
+  static TextStyle appBarTitle = const TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.w600,
+    color: AppColors.textOnPrimary,
+  );
+  
+  static TextStyle metricValue = const TextStyle(
+    fontSize: 32,
+    fontWeight: FontWeight.w800,
+    color: AppColors.textOnPrimary,
+    letterSpacing: -1,
+  );
+  
+  static TextStyle metricLabel = const TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w600,
+    color: AppColors.textOnPrimary,
+    letterSpacing: 0.2,
+  );
+  
+  static TextStyle metricSubtitle = const TextStyle(
+    fontSize: 12,
+    fontWeight: FontWeight.w500,
+    color: AppColors.textOnPrimary,
+  );
+}
+
+// Design System - Spacing
+class AppSpacing {
+  static const double xs = 4.0;
+  static const double sm = 8.0;
+  static const double md = 12.0;
+  static const double lg = 16.0;
+  static const double xl = 20.0;
+  static const double xxl = 24.0;
+  static const double xxxl = 32.0;
+  static const double huge = 40.0;
+  static const double massive = 48.0;
+}
+
+// Design System - Border Radius
+class AppBorderRadius {
+  static const double sm = 8.0;
+  static const double md = 12.0;
+  static const double lg = 16.0;
+  static const double xl = 20.0;
+  static const double xxl = 24.0;
+  static const double round = 100.0;
+}
 
 class StatisticsScreen extends StatefulWidget {
   const StatisticsScreen({super.key});
@@ -44,16 +171,28 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Statistiques',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-        ),
-        backgroundColor: const Color(0xFF1E3A8A),
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
+        backgroundColor: Colors.transparent,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                const Color(0xFF1E3A8A).withOpacity(0.85),
+                const Color(0xFF3B82F6).withOpacity(0.6),
+              ],
+            ),
+          ),
+        ),
+        iconTheme: const IconThemeData(color: AppColors.textOnPrimary),
+        title: Text(
+          'Statistiques',
+          style: AppTextStyles.appBarTitle,
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.white),
+            icon: const Icon(Icons.refresh, color: AppColors.textOnPrimary),
             onPressed: _loadStats,
           ),
         ],
@@ -71,11 +210,11 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [Color(0xFF1E3A8A), Color(0xFF3B82F6)],
+                        colors: [AppColors.primary, AppColors.primaryLight],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(AppBorderRadius.lg),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -83,7 +222,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                         const Text(
                           'Tableau de bord',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: AppColors.textOnPrimary,
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
                           ),
@@ -92,7 +231,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                         Text(
                           'Vue d\'ensemble du système',
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.8),
+                            color: AppColors.textOnPrimary.withOpacity(0.8),
                             fontSize: 14,
                           ),
                         ),
@@ -107,7 +246,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E3A8A),
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -118,7 +257,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                           'Positions enregistrées',
                           '$_totalPositions',
                           Icons.location_on,
-                          const Color(0xFF3B82F6),
+                          AppColors.primaryLight,
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -127,7 +266,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                           'Total alertes',
                           '$_totalAlertes',
                           Icons.notifications,
-                          const Color(0xFFE11D48),
+                          AppColors.error,
                         ),
                       ),
                     ],
@@ -140,14 +279,14 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E3A8A),
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 12),
-                  _buildAlertRow('Entrées au port', _alertesPort, Icons.anchor, Colors.orange),
-                  _buildAlertRow('Sorties du port', _alertesSortie, Icons.sailing, Colors.blue),
-                  _buildAlertRow('Mode sécurité activé', _alertesSecurite, Icons.security, Colors.purple),
-                  _buildAlertRow('Intrusions détectées', _alertesIntrusion, Icons.warning, Colors.red),
+                  _buildAlertRow('Entrées au port', _alertesPort, Icons.anchor, AppColors.warning),
+                  _buildAlertRow('Sorties du port', _alertesSortie, Icons.sailing, AppColors.primaryLight),
+                  _buildAlertRow('Mode sécurité activé', _alertesSecurite, Icons.security, AppColors.primary),
+                  _buildAlertRow('Intrusions détectées', _alertesIntrusion, Icons.warning, AppColors.error),
 
                   const SizedBox(height: 20),
 
@@ -157,7 +296,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E3A8A),
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -176,10 +315,10 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppBorderRadius.lg),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: AppColors.shadow,
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -193,7 +332,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppBorderRadius.md),
             ),
             child: Icon(icon, color: color, size: 24),
           ),
@@ -295,10 +434,10 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: const Color(0xFF1E3A8A).withOpacity(0.1),
+              color: AppColors.primary.withOpacity(0.1),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, color: const Color(0xFF1E3A8A), size: 20),
+            child: Icon(icon, color: AppColors.primary, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -306,7 +445,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               title,
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey[600],
+                color: AppColors.textSecondary,
               ),
             ),
           ),
