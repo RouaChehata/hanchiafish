@@ -1,15 +1,12 @@
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 import sqlite3
 import math
-import os
-import base64
 from datetime import datetime
 
 app = Flask(__name__)
 CORS(app)
 
-# Zone portuaire Teboulba
 PORT_TEBOULBA = {
     "lat": 35.661970525816834,
     "lon": 10.958101377208251,
@@ -52,6 +49,7 @@ def init_db():
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         latitude REAL,
         longitude REAL,
+        speed REAL DEFAULT 0,
         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
     )''')
     c.execute('''CREATE TABLE IF NOT EXISTS alertes (
@@ -60,22 +58,27 @@ def init_db():
         message TEXT,
         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
     )''')
+    c.execute('''CREATE TABLE IF NOT EXISTS captures (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        image TEXT,
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+    )''')
     conn.commit()
     conn.close()
 
-# GPS routes
 @app.route('/gps', methods=['POST'])
 def save_gps():
     data = request.json
     lat = data['latitude']
     lon = data['longitude']
+    speed = data.get('speed', 0)
 
     conn = sqlite3.connect('hanchia.db')
     c = conn.cursor()
-    c.execute("INSERT INTO gps_data (latitude, longitude) VALUES (?, ?)", (lat, lon))
+    c.execute("INSERT INTO gps_data (latitude, longitude, speed) VALUES (?, ?, ?)",
+              (lat, lon, speed))
 
     in_port = check_geofencing(lat, lon)
-
     if boat_status["in_port"] is None:
         boat_status["in_port"] = in_port
     elif in_port != boat_status["in_port"]:
@@ -103,7 +106,11 @@ def get_gps():
     row = c.fetchone()
     conn.close()
     if row:
-        return jsonify({"latitude": row[1], "longitude": row[2]}), 200
+        return jsonify({
+            "latitude": row[1],
+            "longitude": row[2],
+            "speed": row[3] if row[3] else 0
+        }), 200
     return jsonify({"message": "Pas de data"}), 404
 
 @app.route('/gps/history', methods=['GET'])
@@ -113,10 +120,10 @@ def get_gps_history():
     c.execute("SELECT * FROM gps_data ORDER BY timestamp DESC LIMIT 50")
     rows = c.fetchall()
     conn.close()
-    history = [{"id": r[0], "latitude": r[1], "longitude": r[2], "timestamp": r[3]} for r in rows]
+    history = [{"id": r[0], "latitude": r[1], "longitude": r[2],
+                "speed": r[3] if r[3] else 0, "timestamp": r[4]} for r in rows]
     return jsonify(history), 200
 
-# Alertes routes
 @app.route('/alerte', methods=['POST'])
 def save_alerte():
     data = request.json
@@ -138,7 +145,6 @@ def get_alertes():
     alertes = [{"id": r[0], "type": r[1], "message": r[2], "timestamp": r[3]} for r in rows]
     return jsonify(alertes), 200
 
-# ✅ Camera routes JDIDA
 @app.route('/camera', methods=['POST'])
 def save_camera():
     data = request.json
@@ -154,6 +160,37 @@ def get_camera():
             "timestamp": latest_image["timestamp"]
         }), 200
     return jsonify({"message": "Pas d'image"}), 404
+
+@app.route('/capture', methods=['POST'])
+def save_capture():
+    data = request.json
+    conn = sqlite3.connect('hanchia.db')
+    c = conn.cursor()
+    c.execute("INSERT INTO captures (image) VALUES (?)", (data['image'],))
+    conn.commit()
+    conn.close()
+    return jsonify({"message": "Capture enregistrée"}), 200
+
+@app.route('/captures', methods=['GET'])
+def get_captures():
+    conn = sqlite3.connect('hanchia.db')
+    c = conn.cursor()
+    c.execute("SELECT id, timestamp FROM captures ORDER BY timestamp DESC LIMIT 20")
+    rows = c.fetchall()
+    conn.close()
+    captures = [{"id": r[0], "timestamp": r[1]} for r in rows]
+    return jsonify(captures), 200
+
+@app.route('/capture/<int:capture_id>', methods=['GET'])
+def get_capture_image(capture_id):
+    conn = sqlite3.connect('hanchia.db')
+    c = conn.cursor()
+    c.execute("SELECT image, timestamp FROM captures WHERE id=?", (capture_id,))
+    row = c.fetchone()
+    conn.close()
+    if row:
+        return jsonify({"image": row[0], "timestamp": row[1]}), 200
+    return jsonify({"message": "Capture non trouvée"}), 404
 
 if __name__ == '__main__':
     init_db()

@@ -83,6 +83,7 @@ class _BoatDetailScreenState extends State<BoatDetailScreen>
         final data = jsonDecode(response.body);
         setState(() {
           _currentPosition = LatLng(data['latitude'], data['longitude']);
+          _currentSpeed = (data['speed'] ?? 0.0).toDouble();
           _lastUpdate = "Il y a quelques secondes";
           if (_followOnMap) {
             _mapController.move(_currentPosition, _mapController.camera.zoom);
@@ -1071,6 +1072,49 @@ Le rapport doit inclure:
             ],
           ),
           const SizedBox(height: 20),
+          // Speed badge from GPS API
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            margin: const EdgeInsets.only(bottom: 12),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF0D47A1), Color(0xFF1565C0)],
+              ),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF0D47A1).withOpacity(0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.speed_rounded, color: Colors.white, size: 22),
+                const SizedBox(width: 12),
+                Text(
+                  'Vitesse GPS',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white70,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  '${_currentSpeed.toStringAsFixed(1)} km/h',
+                  style: GoogleFonts.inter(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(

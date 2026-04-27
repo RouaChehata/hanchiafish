@@ -141,7 +141,8 @@ class _MapScreenState extends State<MapScreen> {
   Boat? _selectedBoat;
 
   Timer? _timer;
-LatLng _currentPosition = LatLng(33.5731, -7.5898);
+  LatLng _currentPosition = LatLng(33.5731, -7.5898);
+  double _currentSpeed = 0.0;
 
 @override
 void initState() {
@@ -158,6 +159,7 @@ Future<void> _loadGps() async {
   if (data != null) {
     setState(() {
       _currentPosition = LatLng(data['latitude'], data['longitude']);
+      _currentSpeed = (data['speed'] ?? 0.0).toDouble();
     });
     _mapController.move(_currentPosition, 13);
   }
@@ -287,6 +289,43 @@ void dispose() {
               right: 16,
               child: _buildBoatInfoCard(_selectedBoat!),
             ),
+          // Badge vitesse GPS en temps réel
+          Positioned(
+            bottom: _selectedBoat != null ? 200 : 20,
+            left: 16,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF1E3A8A), Color(0xFF3B82F6)],
+                ),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.speed_rounded, color: Colors.white, size: 18),
+                  const SizedBox(width: 8),
+                  Text(
+                    '${_currentSpeed.toStringAsFixed(1)} km/h',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
           // Liste des bateaux en haut
           Positioned(
             top: 10,
@@ -598,4 +637,3 @@ void dispose() {
     );
   }
 }
-

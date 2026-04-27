@@ -39,4 +39,21 @@ class ApiService {
   }
   return [];
 }
+
+// Jib liste captures
+static Future<List<dynamic>> getCaptures() async {
+  final response = await http.get(Uri.parse('$baseUrl/captures'));
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body);
+  }
+  return [];
+}
+
+  static Future<Map<String, dynamic>?> getCaptureImage(int id) async {
+  final response = await http.get(Uri.parse('$baseUrl/capture/$id'));
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body);
+  }
+  return null;
+}
 }

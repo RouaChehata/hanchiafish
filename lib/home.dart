@@ -11,6 +11,8 @@ import 'package:primaa/screens/settings_screen.dart';
 import 'package:primaa/screens/notifications_screen.dart';
 import 'package:primaa/add_boat_dialog.dart';
 import 'package:primaa/screens/statistics_screen.dart';
+import 'package:primaa/screens/captures_screen.dart';
+
 
 // Design System - Colors
 class AppColors {
@@ -1177,6 +1179,20 @@ class _HomeState extends State<Home> {
                       );
                     },
                   ),
+                const SizedBox(height: 4),
+                  _buildModernDrawerItem(
+                  icon: Icons.photo_camera,
+                  title: 'Captures d\'intrusion',
+                  onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const CapturesScreen(),
+                   ),
+                  );
+                  },
+                ),
                   const SizedBox(height: 4),
                   _buildModernDrawerItem(
                     icon: Icons.settings_rounded,
