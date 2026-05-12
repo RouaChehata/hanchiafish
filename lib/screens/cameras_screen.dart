@@ -4,122 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../models/boat_model.dart';
 import 'package:primaa/api_service.dart';
-
-// Design System - Colors
-class AppColors {
-  static const Color primary = Color(0xFF1E3A8A);
-  static const Color primaryLight = Color(0xFF3B82F6);
-  static const Color accent = Color(0xFF77C0D8);
-  static const Color success = Color(0xFF10B981);
-  static const Color warning = Color(0xFFF59E0B);
-  static const Color error = Color(0xFFE11D48);
-  static const Color surface = Color(0xFFF5F7FA);
-  static const Color background = Color(0xFFFFFFFF);
-  static const Color textPrimary = Color(0xFF1E293B);
-  static const Color textSecondary = Color(0xFF64748B);
-  static const Color textTertiary = Color(0xFF94A3B8);
-  static const Color textOnPrimary = Color(0xFFFFFFFF);
-  static const Color border = Color(0xFFE2E8F0);
-  static const Color shadow = Color(0x0A000000);
-  
-  // Camera specific colors
-  static const Color cameraActive = Color(0xFF10B981);
-  static const Color cameraInactive = Color(0xFF94A3B8);
-  static const Color cameraIntrusion = Color(0xFFE11D48);
-}
-
-// Design System - Typography
-class AppTextStyles {
-  static const TextStyle h1 = TextStyle(
-    fontSize: 32,
-    fontWeight: FontWeight.w800,
-    color: AppColors.textPrimary,
-    letterSpacing: -1.0,
-  );
-  
-  static const TextStyle h2 = TextStyle(
-    fontSize: 24,
-    fontWeight: FontWeight.w700,
-    color: AppColors.textPrimary,
-    letterSpacing: -0.5,
-  );
-  
-  static const TextStyle h3 = TextStyle(
-    fontSize: 20,
-    fontWeight: FontWeight.w600,
-    color: AppColors.textPrimary,
-  );
-  
-  static const TextStyle h4 = TextStyle(
-    fontSize: 18,
-    fontWeight: FontWeight.w600,
-    color: AppColors.textPrimary,
-  );
-  
-  static const TextStyle body1 = TextStyle(
-    fontSize: 16,
-    fontWeight: FontWeight.w500,
-    color: AppColors.textPrimary,
-  );
-  
-  static const TextStyle body2 = TextStyle(
-    fontSize: 14,
-    fontWeight: FontWeight.w400,
-    color: AppColors.textPrimary,
-  );
-  
-  static const TextStyle caption = TextStyle(
-    fontSize: 12,
-    fontWeight: FontWeight.w500,
-    color: AppColors.textSecondary,
-  );
-  
-  static const TextStyle small = TextStyle(
-    fontSize: 10,
-    fontWeight: FontWeight.w400,
-    color: AppColors.textTertiary,
-  );
-  
-  static TextStyle appBarTitle = const TextStyle(
-    fontSize: 20,
-    fontWeight: FontWeight.w600,
-    color: AppColors.textOnPrimary,
-  );
-  
-  static TextStyle liveBadge = const TextStyle(
-    fontSize: 10,
-    fontWeight: FontWeight.bold,
-    color: AppColors.textOnPrimary,
-  );
-  
-  static TextStyle statusBadge = const TextStyle(
-    fontSize: 11,
-    fontWeight: FontWeight.bold,
-  );
-}
-
-// Design System - Spacing
-class AppSpacing {
-  static const double xs = 4.0;
-  static const double sm = 8.0;
-  static const double md = 12.0;
-  static const double lg = 16.0;
-  static const double xl = 20.0;
-  static const double xxl = 24.0;
-  static const double xxxl = 32.0;
-  static const double huge = 40.0;
-  static const double massive = 48.0;
-}
-
-// Design System - Border Radius
-class AppBorderRadius {
-  static const double sm = 8.0;
-  static const double md = 12.0;
-  static const double lg = 16.0;
-  static const double xl = 20.0;
-  static const double xxl = 24.0;
-  static const double round = 100.0;
-}
+import 'app theme.dart';
 
 class CamerasScreen extends StatefulWidget {
   const CamerasScreen({super.key});
@@ -133,6 +18,8 @@ class _CamerasScreenState extends State<CamerasScreen> {
   String? _cameraImageBase64;
   String? _imageTimestamp;
   bool _isLoadingImage = false;
+  // ✅ FIX : _intrusion gardé pour les alertes texte UNIQUEMENT
+  // — plus aucun overlay rouge / symbole ⚠ sur le flux vidéo
   bool _intrusion = false;
   Timer? _timer;
 
@@ -140,9 +27,9 @@ class _CamerasScreenState extends State<CamerasScreen> {
   void initState() {
     super.initState();
     _loadCameraImage();
-    _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
-      _loadCameraImage();
-    });
+    _loadAlertes();
+    _timer = Timer.periodic(
+        const Duration(seconds: 3), (_) => _loadCameraImage());
   }
 
   @override
@@ -161,11 +48,10 @@ class _CamerasScreenState extends State<CamerasScreen> {
         final data = jsonDecode(response.body);
         setState(() {
           _cameraImageBase64 = data['image'];
-          _imageTimestamp = data['timestamp'];
+          _imageTimestamp    = data['timestamp'];
         });
       }
-    } catch (e) {
-      // camera mch mwassla
+    } catch (_) {
     } finally {
       setState(() => _isLoadingImage = false);
     }
@@ -173,196 +59,273 @@ class _CamerasScreenState extends State<CamerasScreen> {
 
   Future<void> _loadAlertes() async {
     final alertes = await ApiService.getAlertes();
-    final hasIntrusion = alertes.any((a) => a['type'] == 'Intrusion détectée');
-    setState(() => _intrusion = hasIntrusion);
+    setState(() =>
+        _intrusion = alertes.any((a) => a['type'] == 'Intrusion détectée'));
   }
 
   @override
   Widget build(BuildContext context) {
-    final activeCameras = _boats.where((b) => b.cameraActive).toList();
+    final activeCameras   = _boats.where((b) => b.cameraActive).toList();
     final inactiveCameras = _boats.where((b) => !b.cameraActive).toList();
 
-    return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                const Color(0xFF1E3A8A).withOpacity(0.85),
-                const Color(0xFF3B82F6).withOpacity(0.6),
-              ],
-            ),
-          ),
-        ),
-        iconTheme: const IconThemeData(color: AppColors.textOnPrimary),
-        title: Text(
-          'Caméras',
-          style: AppTextStyles.appBarTitle,
-        ),
+    return MaritimeScaffold(
+      appBar: MaritimeAppBar(
+        title: 'Caméras',
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: AppColors.textOnPrimary),
+            icon: const Icon(Icons.refresh, color: AppColors.white),
             onPressed: _loadCameraImage,
           ),
         ],
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [AppColors.primary, AppColors.primaryLight, AppColors.surface],
-            stops: [0.0, 0.3, 1.0],
-          ),
+      headerContent:
+          _buildStatsHeader(activeCameras.length, inactiveCameras.length),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Titre + badge intrustion (texte seulement) ──────
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+              child: Row(
+                children: [
+                  Text(
+                    'Caméra RPi — EN DIRECT',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w700),
+                  ),
+                  const Spacer(),
+                  // ✅ Badge discret (pas d'overlay rouge sur la vidéo)
+                  if (_intrusion)
+                    MaritimeBadge(
+                      label: 'INTRUSION',
+                      color: AppColors.error,
+                      icon: Icons.warning_rounded,
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+
+            // ── Flux vidéo RPi ──────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+              child: _buildRealCameraCard(),
+            ),
+
+            // ── Caméras Actives ─────────────────────────────────
+            const SizedBox(height: AppSpacing.xl),
+            MaritimeSectionTitle(
+              title: 'Caméras Actives',
+              badge: '${activeCameras.length} actives',
+              badgeColor: AppColors.success,
+            ),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+              itemCount: activeCameras.length,
+              itemBuilder: (_, i) =>
+                  _buildCameraCard(activeCameras[i], isActive: true),
+            ),
+
+            // ── Caméras Inactives ───────────────────────────────
+            if (inactiveCameras.isNotEmpty) ...[
+              MaritimeSectionTitle(
+                title: 'Caméras Inactives',
+                badge: '${inactiveCameras.length} inactives',
+                badgeColor: AppColors.cameraInactive,
+              ),
+              SizedBox(
+                height: 200,
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                  scrollDirection: Axis.horizontal,
+                  itemCount: inactiveCameras.length,
+                  itemBuilder: (_, i) =>
+                      _buildCameraCard(inactiveCameras[i], isActive: false),
+                ),
+              ),
+            ],
+            const SizedBox(height: AppSpacing.xxl),
+          ],
         ),
+      ),
+    );
+  }
+
+  // ── Stats header ─────────────────────────────────────────────
+  Widget _buildStatsHeader(int active, int inactive) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, 0),
+      child: Row(
+        children: [
+          Expanded(
+            child: _HeaderStatTile(
+              icon: Icons.videocam,
+              value: '$active',
+              label: 'Actives',
+              color: AppColors.success,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: _HeaderStatTile(
+              icon: Icons.videocam_off,
+              value: '$inactive',
+              label: 'Inactives',
+              color: AppColors.cameraInactive,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Flux caméra RPi ──────────────────────────────────────────
+  // ✅ FIX : ZÉRO overlay rouge / symbole ⚠ sur la vidéo
+  //    Le flux joue normalement. L'intrusion est signalée
+  //    uniquement dans la ligne de statut en bas de la card.
+  Widget _buildRealCameraCard() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        boxShadow: AppShadows.elevated,
+        border: Border.all(
+          // Bordure verte ou rouge légère — pas d'overlay sur la vidéo
+          color: _intrusion
+              ? AppColors.error.withOpacity(0.4)
+              : AppColors.success.withOpacity(0.35),
+          width: 2,
+        ),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppRadius.xl),
         child: Column(
           children: [
-            _buildStats(activeCameras.length, inactiveCameras.length),
-            Expanded(
-              child: Container(
-                margin: const EdgeInsets.only(top: 20),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(AppBorderRadius.xxl),
-                    topRight: Radius.circular(AppBorderRadius.xxl),
-                  ),
-                ),
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // ✅ Camera réelle RPi
-                      Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Row(
-                          children: [
-                            const Text(
-                              'Caméra RPi — EN DIRECT',
-                              style: AppTextStyles.h3,
-                            ),
-                            const Spacer(),
-                            if (_intrusion)
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 6),
-                                decoration: BoxDecoration(
-                                  color: AppColors.error,
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: const Row(
-                                  children: [
-                                    Icon(Icons.warning, color: AppColors.textOnPrimary, size: 14),
-                                    SizedBox(width: 4),
-                                    Text('INTRUSION',
-                                        style: TextStyle(
-                                            color: AppColors.textOnPrimary,
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.bold)),
-                                  ],
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: _buildRealCameraCard(),
-                      ),
-                      const SizedBox(height: 20),
-                      // Cameras demo
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Row(
-                          children: [
-                            const Text(
-                              'Caméras Actives',
-                              style: AppTextStyles.h3,
-                            ),
-                            const Spacer(),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: AppColors.success.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Text(
-                                '${activeCameras.length} actives',
-                                style: const TextStyle(
-                                  color: AppColors.success,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: activeCameras.length,
-                        itemBuilder: (context, index) {
-                          return _buildCameraCard(activeCameras[index], true);
-                        },
-                      ),
-                      if (inactiveCameras.isNotEmpty) ...[
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: Row(
+            // ── Zone vidéo pure ─────────────────────
+            Stack(
+              children: [
+                Container(
+                  height: 220,
+                  width: double.infinity,
+                  color: const Color(0xFF0A0E1A),
+                  child: _cameraImageBase64 != null
+                      ? Image.memory(
+                          base64Decode(_cameraImageBase64!),
+                          fit: BoxFit.cover,
+                          gaplessPlayback: true,
+                          // ✅ Pas d'erreur visible — juste le fond noir
+                          errorBuilder: (_, __, ___) =>
+                              const SizedBox.shrink(),
+                        )
+                      : Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
+                              _isLoadingImage
+                                  ? const SizedBox(
+                                      width: 28,
+                                      height: 28,
+                                      child: CircularProgressIndicator(
+                                          color: Colors.white54,
+                                          strokeWidth: 2),
+                                    )
+                                  : const Icon(Icons.videocam_off,
+                                      color: Colors.white24, size: 42),
+                              const SizedBox(height: AppSpacing.sm),
                               const Text(
-                                'Caméras Inactives',
+                                'En attente de la caméra…',
                                 style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                              const Spacer(),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 6),
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Text(
-                                  '${inactiveCameras.length} inactives',
-                                  style: TextStyle(
-                                    color: Colors.grey[700],
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 12,
-                                  ),
-                                ),
+                                    color: Colors.white38, fontSize: 12),
                               ),
                             ],
                           ),
                         ),
-                        SizedBox(
-                          height: 200,
-                          child: ListView.builder(
-                            padding: const EdgeInsets.all(16),
-                            scrollDirection: Axis.horizontal,
-                            itemCount: inactiveCameras.length,
-                            itemBuilder: (context, index) {
-                              return _buildCameraCard(
-                                  inactiveCameras[index], false);
-                            },
-                          ),
-                        ),
-                      ],
-                      const SizedBox(height: 20),
-                    ],
-                  ),
                 ),
+                // Badge EN DIRECT (coin haut-droite)
+                Positioned(
+                  top: 12,
+                  right: 12,
+                  child: _LiveDot(),
+                ),
+                // Timestamp (coin bas-gauche)
+                if (_imageTimestamp != null)
+                  Positioned(
+                    bottom: 12,
+                    left: 12,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.55),
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
+                      ),
+                      child: Text(
+                        _imageTimestamp!,
+                        style: const TextStyle(
+                            color: Colors.white, fontSize: 11),
+                      ),
+                    ),
+                  ),
+                // ✅ PAS D'OVERLAY INTRUSION ICI — flux propre
+              ],
+            ),
+
+            // ── Ligne de statut ─────────────────────
+            Container(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.lg, vertical: AppSpacing.md),
+              decoration: BoxDecoration(
+                color: _intrusion
+                    ? AppColors.error.withOpacity(0.06)
+                    : AppColors.success.withOpacity(0.05),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.videocam,
+                      color: _intrusion
+                          ? AppColors.error
+                          : AppColors.success,
+                      size: 18),
+                  const SizedBox(width: AppSpacing.sm),
+                  Text(
+                    'Caméra Raspberry Pi',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: AppColors.primary),
+                  ),
+                  const Spacer(),
+                  // Statut textuel uniquement
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: (_intrusion ? AppColors.error : AppColors.success)
+                          .withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(AppRadius.round),
+                      border: Border.all(
+                        color: (_intrusion
+                                ? AppColors.error
+                                : AppColors.success)
+                            .withOpacity(0.35),
+                      ),
+                    ),
+                    child: Text(
+                      _intrusion ? 'Intrusion détectée' : 'Sécurisé',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: _intrusion
+                            ? AppColors.error
+                            : AppColors.success,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -371,419 +334,273 @@ class _CamerasScreenState extends State<CamerasScreen> {
     );
   }
 
-  Widget _buildRealCameraCard() {
+  // ── Card caméra (active ou inactive) ─────────────────────────
+  // ✅ FIX : aucun overlay ⚠ sur les cards non-RPi
+  Widget _buildCameraCard(Boat boat, {required bool isActive}) {
+    final isRealBoat = boat.id == '1';
+
     return Container(
-      width: double.infinity,
+      width: isActive ? double.infinity : 280,
+      margin: const EdgeInsets.only(
+          bottom: AppSpacing.lg, right: AppSpacing.md),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          ),
-        ],
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        boxShadow: AppShadows.card,
         border: Border.all(
-          color: _intrusion
-              ? Colors.red.withOpacity(0.5)
-              : Colors.green.withOpacity(0.3),
-          width: 2,
+          color: isActive
+              ? AppColors.success.withOpacity(0.3)
+              : AppColors.border,
+          width: 1.5,
         ),
       ),
-      child: Column(
-        children: [
-          Stack(
-            children: [
-              Container(
-                height: 220,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(20),
-                    topRight: Radius.circular(20),
-                  ),
-                  color: Colors.black,
-                ),
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(20),
-                    topRight: Radius.circular(20),
-                  ),
-                  child: _cameraImageBase64 != null
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Stack(
+              children: [
+                // Image / flux
+                Container(
+                  height: isActive ? 200 : 150,
+                  width: double.infinity,
+                  decoration: const BoxDecoration(
+                      gradient: AppGradients.cardHeader),
+                  child: isRealBoat && _cameraImageBase64 != null
                       ? Image.memory(
                           base64Decode(_cameraImageBase64!),
                           fit: BoxFit.cover,
                           gaplessPlayback: true,
+                          errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                         )
-                      : Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              _isLoadingImage
-                                  ? const CircularProgressIndicator(
-                                      color: Colors.white)
-                                  : const Icon(Icons.videocam_off,
-                                      color: Colors.white54, size: 50),
-                              const SizedBox(height: 8),
-                              const Text(
-                                'En attente de la caméra...',
-                                style: TextStyle(
-                                    color: Colors.white54, fontSize: 14),
-                              ),
-                            ],
+                      : Image.asset(
+                          boat.imageUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.videocam,
+                                    size: 40,
+                                    color: Colors.white.withOpacity(0.7)),
+                                const SizedBox(height: AppSpacing.sm),
+                                Text(
+                                  'Caméra ${boat.name}',
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.9),
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                 ),
-              ),
-              // Badge EN DIRECT
-              Positioned(
-                top: 12,
-                right: 12,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.green,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.circle, size: 8, color: Colors.white),
-                      SizedBox(width: 4),
-                      Text('EN DIRECT',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                ),
-              ),
-              // Timestamp
-              if (_imageTimestamp != null)
+                // Badge statut
                 Positioned(
-                  bottom: 12,
-                  left: 12,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.6),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      _imageTimestamp!,
-                      style: const TextStyle(
-                          color: Colors.white, fontSize: 12),
-                    ),
+                  top: 10,
+                  right: 10,
+                  child: MaritimeBadge(
+                    label: isActive ? 'EN DIRECT' : 'HORS LIGNE',
+                    color: isActive
+                        ? AppColors.success
+                        : AppColors.cameraInactive,
+                    icon: isActive
+                        ? Icons.circle
+                        : Icons.circle_outlined,
                   ),
                 ),
-              // Intrusion alert overlay
-              if (_intrusion)
-                Positioned.fill(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.15),
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(20),
-                        topRight: Radius.circular(20),
+                // Badge LIVE (coin bas-gauche des actives)
+                if (isActive)
+                  Positioned(
+                    bottom: 10,
+                    left: 10,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.5),
+                        borderRadius:
+                            BorderRadius.circular(AppRadius.sm),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.play_circle_filled,
+                              color: Colors.white, size: 13),
+                          SizedBox(width: 4),
+                          Text('LIVE',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold)),
+                        ],
                       ),
                     ),
-                    child: const Center(
-                      child: Icon(Icons.warning_amber_rounded,
-                          color: Colors.red, size: 60),
-                    ),
                   ),
-                ),
-            ],
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                const Icon(Icons.videocam, color: Colors.green, size: 20),
-                const SizedBox(width: 8),
-                const Text(
-                  'Caméra Raspberry Pi',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E3A8A),
-                  ),
-                ),
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: _intrusion
-                        ? Colors.red.withOpacity(0.1)
-                        : Colors.green.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    _intrusion ? '🚨 Intrusion!' : '✅ Sécurisé',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: _intrusion ? Colors.red : Colors.green,
-                    ),
-                  ),
-                ),
+                // ✅ PAS D'OVERLAY INTRUSION SUR LES CARDS
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStats(int active, int total) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.9),
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
+            // Footer
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              child: Row(
                 children: [
-                  const Icon(Icons.videocam, color: Colors.green, size: 32),
-                  const SizedBox(height: 8),
-                  Text('$active',
-                      style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green)),
-                  Text('Actives',
-                      style:
-                          TextStyle(fontSize: 12, color: Colors.grey[600])),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.9),
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  const Icon(Icons.videocam_off,
-                      color: Colors.grey, size: 32),
-                  const SizedBox(height: 8),
-                  Text('${total - active}',
-                      style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey[700])),
-                  Text('Inactives',
-                      style:
-                          TextStyle(fontSize: 12, color: Colors.grey[600])),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCameraCard(Boat boat, bool isActive) {
-    return Container(
-      width: isActive ? double.infinity : 280,
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          ),
-        ],
-        border: Border.all(
-          color: isActive
-              ? Colors.green.withOpacity(0.3)
-              : Colors.grey.withOpacity(0.2),
-          width: 1.5,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Stack(
-            children: [
-              Container(
-                height: isActive ? 200 : 150,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(20),
-                    topRight: Radius.circular(20),
-                  ),
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      const Color(0xFF1E3A8A).withOpacity(0.8),
-                      const Color(0xFF3B82F6).withOpacity(0.6),
-                    ],
-                  ),
-                ),
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(20),
-                    topRight: Radius.circular(20),
-                  ),
-                  child: Image.asset(
-                    boat.imageUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          boat.name,
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(color: AppColors.primary),
+                        ),
+                        const SizedBox(height: 3),
+                        Row(
                           children: [
-                            Icon(Icons.videocam,
-                                size: 50,
-                                color: Colors.white.withOpacity(0.7)),
-                            const SizedBox(height: 8),
+                            const Icon(Icons.location_on,
+                                size: 12,
+                                color: AppColors.textSecondary),
+                            const SizedBox(width: 3),
                             Text(
-                              'Caméra ${boat.name}',
-                              style: TextStyle(
-                                color: Colors.white.withOpacity(0.9),
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              '${boat.latitude.toStringAsFixed(4)}, '
+                              '${boat.longitude.toStringAsFixed(4)}',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                      color: AppColors.textSecondary),
                             ),
                           ],
                         ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-              Positioned(
-                top: 12,
-                right: 12,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: isActive ? Colors.green : Colors.grey[700],
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                          isActive
-                              ? Icons.circle
-                              : Icons.circle_outlined,
-                          size: 8,
-                          color: Colors.white),
-                      const SizedBox(width: 4),
-                      Text(
-                        isActive ? 'EN DIRECT' : 'HORS LIGNE',
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              if (isActive)
-                Positioned(
-                  bottom: 12,
-                  left: 12,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.5),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.play_circle_filled,
-                            color: Colors.white, size: 16),
-                        SizedBox(width: 4),
-                        Text('LIVE',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold)),
                       ],
                     ),
                   ),
-                ),
-            ],
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        boat.name,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1E3A8A),
-                        ),
-                      ),
-                    ),
-                    Icon(
-                        isActive ? Icons.videocam : Icons.videocam_off,
-                        color: isActive ? Colors.green : Colors.grey,
-                        size: 20),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Icon(Icons.location_on,
-                        size: 16, color: Colors.grey[600]),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${boat.latitude.toStringAsFixed(4)}, ${boat.longitude.toStringAsFixed(4)}',
-                      style: TextStyle(
-                          fontSize: 12, color: Colors.grey[600]),
-                    ),
-                  ],
-                ),
-              ],
+                  Icon(
+                    isActive ? Icons.videocam : Icons.videocam_off,
+                    color: isActive
+                        ? AppColors.cameraActive
+                        : AppColors.cameraInactive,
+                    size: 20,
+                  ),
+                ],
+              ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Dot "EN DIRECT" animé ─────────────────────────────────────
+// Remplace le badge rouge statique par un point vert qui pulse
+class _LiveDot extends StatefulWidget {
+  @override
+  State<_LiveDot> createState() => _LiveDotState();
+}
+
+class _LiveDotState extends State<_LiveDot>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<double> _anim;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+        vsync: this, duration: const Duration(seconds: 1))
+      ..repeat(reverse: true);
+    _anim = Tween<double>(begin: 0.5, end: 1.0).animate(_ctrl);
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _anim,
+      builder: (_, __) => Container(
+        padding:
+            const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.55),
+          borderRadius: BorderRadius.circular(AppRadius.round),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.success.withOpacity(_anim.value),
+              ),
+            ),
+            const SizedBox(width: 5),
+            const Text(
+              'EN DIRECT',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Tuile stat header ────────────────────────────────────────
+class _HeaderStatTile extends StatelessWidget {
+  final IconData icon;
+  final String value;
+  final String label;
+  final Color color;
+
+  const _HeaderStatTile({
+    required this.icon,
+    required this.value,
+    required this.label,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.9),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        boxShadow: AppShadows.subtle,
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 26),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            value,
+            style: TextStyle(
+                fontSize: 22, fontWeight: FontWeight.w800, color: color),
+          ),
+          Text(
+            label,
+            style: Theme.of(context)
+                .textTheme
+                .bodySmall
+                ?.copyWith(color: AppColors.textSecondary),
           ),
         ],
       ),

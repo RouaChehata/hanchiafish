@@ -6,12 +6,13 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
-
+import 'package:primaa/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:primaa/models/boat_model.dart';
+import 'package:primaa/screens/app theme.dart'; // ← Design System partagé
 import '../services/pdf_service.dart';
 import '../widgets/animated_speed_gauge.dart';
 import '../widgets/wave_background_card.dart';
@@ -48,50 +49,44 @@ class _BoatDetailScreenState extends State<BoatDetailScreen>
   void initState() {
     super.initState();
     _currentPosition = LatLng(widget.boat.latitude, widget.boat.longitude);
-    _currentSpeed = widget.boat.speed;
-    _lastUpdate = widget.boat.lastUpdate;
+    _currentSpeed    = widget.boat.speed;
+    _lastUpdate      = widget.boat.lastUpdate;
 
     _waveController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 4),
-    )..repeat();
-
+        vsync: this, duration: const Duration(seconds: 4))..repeat();
     _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    )..repeat(reverse: true);
-
+        vsync: this, duration: const Duration(seconds: 2))..repeat(reverse: true);
     _sonarController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    )..repeat();
+        vsync: this, duration: const Duration(seconds: 2))..repeat();
 
-    // Load GPS from Flask
     _loadGps();
-    _gpsTimer = Timer.periodic(const Duration(seconds: 60), (timer) {
-      _loadGps();
-    });
+    _gpsTimer = Timer.periodic(
+        const Duration(seconds: 60), (_) => _loadGps());
   }
 
   Future<void> _loadGps() async {
-    setState(() => _isLoadingGps = true);
-    try {
-      final response = await http
-          .get(Uri.parse('http://127.0.0.1:5000/gps'))
-          .timeout(const Duration(seconds: 3));
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        setState(() {
-          _currentPosition = LatLng(data['latitude'], data['longitude']);
-          _currentSpeed = (data['speed'] ?? 0.0).toDouble();
-          _lastUpdate = "Il y a quelques secondes";
-          if (_followOnMap) {
-            _mapController.move(_currentPosition, _mapController.camera.zoom);
+    if (widget.boat.id != '1') {
+    setState(() => _isLoadingGps = false);
+    return;
+  }
+  setState(() => _isLoadingGps = true);
+  try {
+    final response = await http
+        .get(Uri.parse('${ApiService.baseUrl}/gps'))
+        .timeout(const Duration(seconds: 3));
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      setState(() {
+        _currentPosition = LatLng(data['latitude'], data['longitude']);
+        _currentSpeed = (data['speed'] ?? 0.0).toDouble();
+        _lastUpdate = 'Il y a quelques secondes';
+        if (_followOnMap) {
+          _mapController.move(_currentPosition, _mapController.camera.zoom);
           }
         });
       }
-    } catch (e) {
-      // serveur mch shayel — keep current position
+    } catch (_) {
+      // serveur injoignable — on garde la position actuelle
     } finally {
       setState(() => _isLoadingGps = false);
     }
@@ -112,67 +107,32 @@ class _BoatDetailScreenState extends State<BoatDetailScreen>
     final boat = widget.boat;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppColors.background,
       body: CustomScrollView(
         slivers: [
+          // ── SliverAppBar ──────────────────────
           SliverAppBar(
             expandedHeight: 450,
             pinned: true,
             stretch: true,
-            backgroundColor: const Color(0xFFF8FAFC),
-            leading: Container(
-              margin: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: IconButton(
-                onPressed: () => Navigator.of(context).pop(),
-                icon: const Icon(
-                  Icons.arrow_back_ios_new,
-                  color: Color(0xFF1F2937),
-                  size: 18,
-                ),
-              ),
+            backgroundColor: AppColors.background,
+            leading: _appBarButton(
+              child: const Icon(Icons.arrow_back_ios_new,
+                  color: AppColors.primary, size: 18),
+              onTap: () => Navigator.of(context).pop(),
             ),
             actions: [
-              Container(
-                margin: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.08),
-                      blurRadius: 10,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: IconButton(
-                  onPressed: _loadGps,
-                  icon: _isLoadingGps
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(
+              _appBarButton(
+                onTap: _loadGps,
+                child: _isLoadingGps
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: Color(0xFF1E3A8A),
-                          ),
-                        )
-                      : const Icon(
-                          Icons.refresh,
-                          color: Color(0xFF1E3A8A),
-                          size: 18,
-                        ),
-                ),
+                            color: AppColors.primaryLight))
+                    : const Icon(Icons.refresh,
+                        color: AppColors.primary, size: 18),
               ),
             ],
             flexibleSpace: FlexibleSpaceBar(
@@ -184,21 +144,11 @@ class _BoatDetailScreenState extends State<BoatDetailScreen>
                       'images/cage.png',
                       fit: BoxFit.cover,
                       gaplessPlayback: true,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          decoration: const BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Color(0xFF0D47A1),
-                                Color(0xFF1565C0),
-                                Color(0xFF1E88E5),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
+                      errorBuilder: (_, __, ___) => Container(
+                        decoration: const BoxDecoration(
+                          gradient: AppGradients.cardHeader,
+                        ),
+                      ),
                     ),
                   ),
                   Positioned.fill(
@@ -210,7 +160,7 @@ class _BoatDetailScreenState extends State<BoatDetailScreen>
                           colors: [
                             Colors.transparent,
                             Colors.transparent,
-                            Colors.black.withOpacity(0.05),
+                            Colors.black.withOpacity(0.04),
                           ],
                         ),
                       ),
@@ -221,63 +171,45 @@ class _BoatDetailScreenState extends State<BoatDetailScreen>
                     left: 20,
                     right: 20,
                     child: Center(
-                      child: _buildModernDashboardHeader(boat),
-                    ),
+                        child: _buildDashboardHeader(boat)),
                   ),
                 ],
               ),
             ),
           ),
+          // ── Body ─────────────────────────────
           SliverToBoxAdapter(
             child: Container(
               decoration: const BoxDecoration(
-                color: Color(0xFFF8FAFC),
+                color: AppColors.background,
                 borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(32),
-                  topRight: Radius.circular(32),
+                  topLeft: Radius.circular(AppRadius.xxl),
+                  topRight: Radius.circular(AppRadius.xxl),
                 ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 24),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: _buildModernSectionHeader('Informations générales'),
-                  ),
-                  const SizedBox(height: 16),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: _buildModernStatsGrid(boat),
-                  ),
-                  const SizedBox(height: 24),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: _buildModernSectionHeader(
-                      'Position GPS & Temps réel',
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: _buildModernGpsInfo(),
-                  ),
-                  const SizedBox(height: 20),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: _buildSpeedGaugeSection(),
-                  ),
-                  const SizedBox(height: 20),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: _buildModernMapCard(),
-                  ),
-                  const SizedBox(height: 20),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: _buildGroqRapportSection(boat),
-                  ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: AppSpacing.xxl),
+                  // Infos générales
+                  _sectionPadding(_buildSectionHeader('Informations générales')),
+                  const SizedBox(height: AppSpacing.lg),
+                  _sectionPadding(_buildStatsGrid(boat)),
+                  const SizedBox(height: AppSpacing.xxl),
+                  // GPS
+                  _sectionPadding(_buildSectionHeader('Position GPS & Temps réel')),
+                  const SizedBox(height: AppSpacing.lg),
+                  _sectionPadding(_buildGpsInfo()),
+                  const SizedBox(height: AppSpacing.xl),
+                  // Jauge vitesse
+                  _sectionPadding(_buildSpeedGaugeSection()),
+                  const SizedBox(height: AppSpacing.xl),
+                  // Carte
+                  _sectionPadding(_buildMapCard()),
+                  const SizedBox(height: AppSpacing.xl),
+                  // Rapport IA
+                  _sectionPadding(_buildGroqRapportSection(boat)),
+                  const SizedBox(height: AppSpacing.huge),
                 ],
               ),
             ),
@@ -287,472 +219,46 @@ class _BoatDetailScreenState extends State<BoatDetailScreen>
     );
   }
 
-  Future<void> _generateRapport(Boat boat) async {
-    setState(() {
-      _rapportLoading = true;
-      _rapport = null;
-      _showRapport = true;
-    });
+  Widget _sectionPadding(Widget child) =>
+      Padding(padding: const EdgeInsets.symmetric(horizontal: 24), child: child);
 
-    const apiKey = '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';
-
-    final prompt =
-        """
-Tu es un officier maritime. Génère un rapport d'état professionnel en français.
-
-DONNÉES DU BATEAU:
-- Nom: ${boat.name}
-- Statut: ${boat.status}
-- Position GPS: Lat ${_currentPosition.latitude.toStringAsFixed(4)}, Lon ${_currentPosition.longitude.toStringAsFixed(4)}
-- Vitesse: ${_currentSpeed.toStringAsFixed(1)} noeuds
-- Dernière mise à jour: $_lastUpdate
-
-Le rapport doit inclure:
-1. RÉSUMÉ DE L'ÉTAT
-2. POSITION & NAVIGATION
-3. ÉTAT TECHNIQUE
-4. RECOMMANDATIONS
-""";
-
-    try {
-      final response = await http.post(
-        Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
-        headers: {
-          'Authorization': 'Bearer $apiKey',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'model': 'llama-3.1-8b-instant',
-          'messages': [
-            {'role': 'user', 'content': prompt},
-          ],
-          'max_tokens': 800,
-          'temperature': 0.7,
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        setState(() {
-          _rapport = data['choices'][0]['message']['content'];
-        });
-      } else {
-        final error = jsonDecode(response.body);
-        setState(() {
-          _rapport = 'Erreur: ${error['error']['message']}';
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _rapport = 'Erreur connexion: $e';
-      });
-    } finally {
-      setState(() {
-        _rapportLoading = false;
-      });
-    }
-  }
-
-  Future<void> _downloadPdf(Boat boat) async {
-    if (_rapport == null) return;
-
-    final now = DateTime.now();
-    final dateStr =
-        '${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}';
-    final responsable = _responsableCtrl.text.trim().isEmpty
-        ? 'Non renseigné'
-        : _responsableCtrl.text.trim();
-
-    final pdf = pw.Document();
-
-    pdf.addPage(
-      pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(40),
-        header: (context) => pw.Container(
-          padding: const pw.EdgeInsets.only(bottom: 12),
-          decoration: const pw.BoxDecoration(
-            border: pw.Border(
-              bottom: pw.BorderSide(color: PdfColors.blue800, width: 2),
-            ),
-          ),
-          child: pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-            children: [
-              pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  pw.Text(
-                    "RAPPORT D'ETAT MARITIME",
-                    style: pw.TextStyle(
-                      fontSize: 16,
-                      fontWeight: pw.FontWeight.bold,
-                      color: PdfColors.blue900,
-                    ),
-                  ),
-                  pw.Text(
-                    boat.name,
-                    style: pw.TextStyle(fontSize: 12, color: PdfColors.blue700),
-                  ),
-                ],
-              ),
-              pw.Container(
-                padding: const pw.EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: pw.BoxDecoration(
-                  color: PdfColors.blue700,
-                  borderRadius: pw.BorderRadius.circular(20),
-                ),
-                child: pw.Text(
-                  boat.status,
-                  style: pw.TextStyle(
-                    color: PdfColors.white,
-                    fontWeight: pw.FontWeight.bold,
-                    fontSize: 10,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        footer: (context) => pw.Row(
-          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-          children: [
-            pw.Text(
-              'Genere le $dateStr — CONFIDENTIEL',
-              style: const pw.TextStyle(color: PdfColors.grey500, fontSize: 8),
-            ),
-            pw.Text(
-              'Page ${context.pageNumber} / ${context.pagesCount}',
-              style: const pw.TextStyle(color: PdfColors.grey500, fontSize: 8),
-            ),
-          ],
-        ),
-        build: (context) => [
-          pw.SizedBox(height: 20),
-          pw.Text(
-            "RAPPORT D'ETAT DETAILLE",
-            style: pw.TextStyle(
-              fontSize: 13,
-              fontWeight: pw.FontWeight.bold,
-              color: PdfColors.blue800,
-            ),
-          ),
-          pw.Divider(color: PdfColors.blue200),
-          pw.SizedBox(height: 8),
-          pw.Text(
-            _rapport!,
-            style: const pw.TextStyle(fontSize: 10.5, lineSpacing: 4),
-          ),
-          pw.SizedBox(height: 30),
-          pw.Container(
-            padding: const pw.EdgeInsets.all(16),
-            decoration: pw.BoxDecoration(
-              border: pw.Border.all(color: PdfColors.blue200),
-              borderRadius: pw.BorderRadius.circular(8),
-              color: PdfColors.blue50,
-            ),
-            child: pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                pw.Text(
-                  'DÉCLARATION DE RESPONSABILITÉ',
-                  style: pw.TextStyle(
-                    fontSize: 11,
-                    fontWeight: pw.FontWeight.bold,
-                    color: PdfColors.blue900,
-                  ),
-                ),
-                pw.SizedBox(height: 10),
-                pw.Text(
-                  'Je, $responsable, déclare que les informations contenues dans ce rapport sont exactes et mises à jour. '
-                  'Je suis responsable de la sécurité et de la maintenance du ${boat.name}.',
-                  style: const pw.TextStyle(fontSize: 10, lineSpacing: 3),
-                ),
-                pw.SizedBox(height: 14),
-                pw.Row(
-                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                  children: [
-                    pw.Text(
-                      'Date : $dateStr',
-                      style: pw.TextStyle(
-                        fontSize: 10,
-                        fontWeight: pw.FontWeight.bold,
-                      ),
-                    ),
-                    pw.Text(
-                      'Signature : $responsable',
-                      style: pw.TextStyle(
-                        fontSize: 10,
-                        fontWeight: pw.FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
+  // ── AppBar bouton (retour / refresh) ─────────
+  Widget _appBarButton({required Widget child, required VoidCallback onTap}) {
+    return Container(
+      margin: const EdgeInsets.all(AppSpacing.sm),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        boxShadow: AppShadows.subtle,
+      ),
+      child: IconButton(
+        onPressed: onTap,
+        icon: child,
+        padding: const EdgeInsets.all(AppSpacing.sm),
       ),
     );
-
-    await Printing.layoutPdf(
-      onLayout: (format) async => pdf.save(),
-      name: 'rapport_${boat.name}.pdf',
-    );
   }
 
-  Widget _buildGroqRapportSection(Boat boat) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Colors.blue.shade300,
-                Colors.blue.shade400,
-                Colors.blueAccent,
-              ],
-            ),
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.blue.shade300.withOpacity(0.3),
-                blurRadius: 15,
-                offset: const Offset(0, 6),
-              ),
-              BoxShadow(
-                color: Colors.blueAccent.withOpacity(0.2),
-                blurRadius: 25,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ),
-            onPressed: _rapportLoading ? null : () => _generateRapport(boat),
-            icon: _rapportLoading
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 2,
-                    ),
-                  )
-                : const Text('⚡', style: TextStyle(fontSize: 18)),
-            label: Text(
-              _rapportLoading
-                  ? 'Groq génère le rapport...'
-                  : 'Générer Rapport IA',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ),
-        if (_showRapport && _rapport != null) ...[
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Colors.blue.shade50,
-                  Colors.blue.shade100,
-                  Colors.blue.shade50,
-                ],
-              ),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: Colors.blue.shade200.withOpacity(0.5),
-                width: 1,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.blue.shade200.withOpacity(0.2),
-                  blurRadius: 15,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Colors.blue.shade300, Colors.blue.shade400],
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.description_outlined,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Rapport Généré',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue.shade700,
-                      ),
-                    ),
-                    const Spacer(),
-                    IconButton(
-                      onPressed: () => setState(() => _showRapport = false),
-                      icon: const Icon(
-                        Icons.close,
-                        size: 18,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ],
-                ),
-                const Divider(color: Colors.blue),
-                const SizedBox(height: 8),
-                Text(
-                  _rapport!,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 13,
-                    height: 1.7,
-                    color: Colors.blue.shade800,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  'Nom du responsable',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue.shade700,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _responsableCtrl,
-                  decoration: InputDecoration(
-                    hintText: 'Ex: Roua Chehata',
-                    hintStyle: GoogleFonts.plusJakartaSans(color: Colors.grey),
-                    prefixIcon: const Icon(
-                      Icons.person_outline,
-                      color: Colors.blue,
-                    ),
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.blue.shade200),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.blue.shade200),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
-                        color: Colors.blue,
-                        width: 2,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    onPressed: () => _downloadPdf(boat),
-                    icon: const Icon(Icons.picture_as_pdf, color: Colors.white),
-                    label: Text(
-                      'Télécharger PDF',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildModernDashboardHeader(Boat boat) {
-    Color statusColor;
-    String statusLabel = boat.status;
-    IconData statusIcon;
-    switch (boat.status) {
-      case 'En mer':
-        statusColor = Colors.blueAccent;
-        statusIcon = Icons.water;
-        break;
-      case 'Au port':
-        statusColor = Colors.amber;
-        statusIcon = Icons.anchor;
-        break;
-      case 'En maintenance':
-        statusColor = Colors.red;
-        statusIcon = Icons.build;
-        break;
-      default:
-        statusColor = Colors.grey;
-        statusIcon = Icons.help_outline;
-        statusLabel = 'Statut inconnu';
-    }
+  // ── Dashboard header (carte d'identité bateau)
+  Widget _buildDashboardHeader(Boat boat) {
+    final statusColor = MaritimeStatusColor.fromStatus(boat.status);
+    final statusIcon  = _statusIconData(boat.status);
 
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 400),
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.75),
-          borderRadius: BorderRadius.circular(28),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 30,
-              offset: const Offset(0, 15),
-            ),
-          ],
-          border: Border.all(color: Colors.white.withOpacity(0.5), width: 1.5),
+          color: AppColors.white.withOpacity(0.88),
+          borderRadius: BorderRadius.circular(AppRadius.xxl),
+          boxShadow: AppShadows.elevated,
+          border: Border.all(
+              color: AppColors.white.withOpacity(0.5), width: 1.5),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Avatar
             Container(
               width: 80,
               height: 80,
@@ -762,17 +268,16 @@ Le rapport doit inclure:
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Colors.blueAccent.withOpacity(0.15),
-                    Colors.blue.withOpacity(0.08),
+                    AppColors.primaryLight.withOpacity(0.15),
+                    AppColors.primary.withOpacity(0.08),
                   ],
                 ),
                 border: Border.all(
-                  color: Colors.blueAccent.withOpacity(0.4),
-                  width: 2,
-                ),
+                    color: AppColors.primaryLight.withOpacity(0.4),
+                    width: 2),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.blueAccent.withOpacity(0.25),
+                    color: AppColors.primaryLight.withOpacity(0.25),
                     blurRadius: 25,
                     offset: const Offset(0, 8),
                   ),
@@ -782,80 +287,69 @@ Le rapport doit inclure:
                 child: Image.asset(
                   boat.imageUrl,
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Container(
+                  errorBuilder: (_, __, ___) => Container(
                     decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Colors.blueAccent, Colors.blue],
-                      ),
-                    ),
+                        gradient: AppGradients.cardHeader),
                     child: const Icon(
                       Icons.directions_boat_filled,
-                      color: Colors.white,
+                      color: AppColors.white,
                       size: 36,
                     ),
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             Text(
               boat.name,
-              style: GoogleFonts.plusJakartaSans(
+              style: const TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w700,
-                color: const Color(0xFF1F2937),
+                color: AppColors.primary,
                 letterSpacing: -0.5,
               ),
             ),
             const SizedBox(height: 4),
             Text(
               'ID: ${boat.id}',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: const Color(0xFF6B7280),
-              ),
+              style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.textSecondary),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
+                      horizontal: AppSpacing.md, vertical: 6),
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(20),
+                    color: statusColor.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(AppRadius.round),
                     border: Border.all(
-                      color: statusColor.withOpacity(0.4),
-                      width: 1,
-                    ),
+                        color: statusColor.withOpacity(0.4)),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(statusIcon, size: 16, color: statusColor),
-                      const SizedBox(width: 8),
-                      Text(
-                        statusLabel,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: statusColor,
-                        ),
-                      ),
+                      Icon(statusIcon, size: 15, color: statusColor),
+                      const SizedBox(width: AppSpacing.sm),
+                      Text(boat.status,
+                          style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: statusColor)),
                     ],
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.sm),
                 LiveIndicator(
                   text: _lastUpdate,
                   size: 10,
                   textStyle: const TextStyle(
                     fontSize: 12,
-                    color: Color(0xFF10B981),
+                    color: AppColors.success,
                     fontWeight: FontWeight.w600,
                     letterSpacing: 0.5,
                   ),
@@ -868,9 +362,10 @@ Le rapport doit inclure:
     );
   }
 
-  Widget _buildModernSectionHeader(String title) {
+  // ── Section header ────────────────────────────
+  Widget _buildSectionHeader(String title) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: Row(
         children: [
           Container(
@@ -880,18 +375,18 @@ Le rapport doit inclure:
               gradient: const LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [Colors.blueAccent, Colors.blue],
+                colors: [AppColors.primaryLight, AppColors.primary],
               ),
               borderRadius: BorderRadius.circular(3),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.md),
           Text(
             title,
-            style: GoogleFonts.plusJakartaSans(
+            style: GoogleFonts.inter(
               fontSize: 20,
               fontWeight: FontWeight.w700,
-              color: const Color(0xFF1F2937),
+              color: AppColors.primary,
               letterSpacing: -0.5,
             ),
           ),
@@ -900,7 +395,8 @@ Le rapport doit inclure:
     );
   }
 
-  Widget _buildModernStatsGrid(Boat boat) {
+  // ── Stats grid ───────────────────────────────
+  Widget _buildStatsGrid(Boat boat) {
     return SizedBox(
       height: 150,
       child: ListView(
@@ -911,19 +407,21 @@ Le rapport doit inclure:
             value: '${_currentSpeed.toStringAsFixed(0)}',
             label: 'nœuds',
             detailTitle: 'Vitesse actuelle',
-            detailContent: 'Le bateau navigue à ${_currentSpeed.toStringAsFixed(1)} nœuds. Vitesse maximale enregistrée: 45.2 nœuds.',
-            iconColor: Colors.blueAccent,
+            detailContent:
+                'Le bateau navigue à ${_currentSpeed.toStringAsFixed(1)} nœuds.',
+            iconColor: AppColors.primaryLight,
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.md),
           FlipStatCard(
             icon: Icons.group_rounded,
             value: '${boat.crewMembers}',
             label: 'marins',
             detailTitle: 'Équipage',
-            detailContent: '${boat.crewMembers} membres d\'équipage à bord. Tous les membres sont qualifiés et opérationnels.',
-            iconColor: Colors.purple,
+            detailContent:
+                '${boat.crewMembers} membres d\'équipage à bord.',
+            iconColor: AppColors.primary,
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.md),
           FlipStatCard(
             icon: boat.cameraActive
                 ? Icons.videocam_rounded
@@ -931,160 +429,91 @@ Le rapport doit inclure:
             value: boat.cameraActive ? 'ON' : 'OFF',
             label: 'caméra',
             detailTitle: 'Système de surveillance',
-            detailContent: boat.cameraActive 
-                ? 'Caméras actives et enregistrant. 4 caméras opérationnelles.'
-                : 'Caméras désactivées. Maintenance en cours.',
-            iconColor: boat.cameraActive ? Colors.green : Colors.grey,
-          ),
-                  ],
-      ),
-    );
-  }
-
-  Widget _buildCompactStatCard({
-    required IconData icon,
-    required String value,
-    required String unit,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.1), width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, color: color, size: 16),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            value,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: const Color(0xFF1F2937),
-            ),
-          ),
-          Text(
-            unit,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 8,
-              fontWeight: FontWeight.w500,
-              color: const Color(0xFF6B7280),
-            ),
+            detailContent: boat.cameraActive
+                ? 'Caméras actives et enregistrant.'
+                : 'Caméras désactivées.',
+            iconColor: boat.cameraActive
+                ? AppColors.success
+                : AppColors.textSecondary,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildModernGpsInfo() {
+  // ── GPS Info ─────────────────────────────────
+  Widget _buildGpsInfo() {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(AppSpacing.xxl),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFFF8FAFC), Color(0xFFF1F5F9), Colors.white],
-        ),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        boxShadow: AppShadows.card,
+        border: Border.all(color: AppColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Header
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(AppSpacing.md),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Color(0xFF0D47A1), Color(0xFF1565C0)],
+                    colors: [AppColors.primary, AppColors.primaryLight],
                   ),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
                 ),
-                child: const Icon(
-                  Icons.location_on_rounded,
-                  color: Colors.white,
-                  size: 24,
-                ),
+                child: const Icon(Icons.location_on_rounded,
+                    color: AppColors.white, size: 24),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: AppSpacing.lg),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Coordonnées actuelles',
-                      style: GoogleFonts.inter(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF1F2937),
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Position GPS en temps réel',
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
-                        color: const Color(0xFF6B7280),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+                    Text('Coordonnées actuelles',
+                        style: GoogleFonts.inter(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.primary,
+                            letterSpacing: -0.5)),
+                    const SizedBox(height: 3),
+                    Text('Position GPS en temps réel',
+                        style: GoogleFonts.inter(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                            fontWeight: FontWeight.w500)),
                   ],
                 ),
               ),
-              // Live indicator
               LiveIndicator(
                 text: _lastUpdate,
                 size: 8,
                 textStyle: const TextStyle(
-                  fontSize: 12,
-                  color: Color(0xFF10B981),
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.5,
-                ),
+                    fontSize: 12,
+                    color: AppColors.success,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.5),
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          // Speed badge from GPS API
+          const SizedBox(height: AppSpacing.xl),
+          // Badge vitesse GPS
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
+            margin: const EdgeInsets.only(bottom: AppSpacing.md),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF0D47A1), Color(0xFF1565C0)],
+                colors: [AppColors.primary, AppColors.primaryLight],
               ),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(AppRadius.lg),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF0D47A1).withOpacity(0.3),
+                  color: AppColors.primary.withOpacity(0.3),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
@@ -1092,126 +521,47 @@ Le rapport doit inclure:
             ),
             child: Row(
               children: [
-                const Icon(Icons.speed_rounded, color: Colors.white, size: 22),
-                const SizedBox(width: 12),
-                Text(
-                  'Vitesse GPS',
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white70,
-                  ),
-                ),
+                const Icon(Icons.speed_rounded,
+                    color: AppColors.white, size: 22),
+                const SizedBox(width: AppSpacing.md),
+                Text('Vitesse GPS',
+                    style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white70)),
                 const Spacer(),
-                Text(
-                  '${_currentSpeed.toStringAsFixed(1)} km/h',
-                  style: GoogleFonts.inter(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                    letterSpacing: -0.5,
-                  ),
-                ),
+                Text('${_currentSpeed.toStringAsFixed(1)} km/h',
+                    style: GoogleFonts.inter(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.white,
+                        letterSpacing: -0.5)),
               ],
             ),
           ),
+          // Lat / Lng
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(AppSpacing.xl),
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE5E7EB), width: 1),
+              color: AppColors.background,
+              borderRadius: BorderRadius.circular(AppRadius.lg),
+              border: Border.all(color: AppColors.border),
             ),
             child: Row(
               children: [
+                Expanded(child: _coordCol('Latitude', Icons.explore,
+                    _currentPosition.latitude.toStringAsFixed(6),
+                    AppColors.primary)),
+                Container(
+                    width: 1, height: 50, color: AppColors.border),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF0D47A1).withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Icon(
-                              Icons.explore,
-                              color: Color(0xFF0D47A1),
-                              size: 16,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Latitude',
-                            style: GoogleFonts.inter(
-                              fontSize: 12,
-                              color: const Color(0xFF6B7280),
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        _currentPosition.latitude.toStringAsFixed(6),
-                        style: GoogleFonts.inter(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF1F2937),
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(width: 1, height: 50, color: const Color(0xFFE5E7EB)),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF8B5CF6).withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const Icon(
-                                Icons.compass_calibration,
-                                color: Color(0xFF8B5CF6),
-                                size: 16,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Longitude',
-                              style: GoogleFonts.inter(
-                                fontSize: 12,
-                                color: const Color(0xFF6B7280),
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          _currentPosition.longitude.toStringAsFixed(6),
-                          style: GoogleFonts.inter(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: const Color(0xFF1F2937),
-                            letterSpacing: -0.5,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                    child: Padding(
+                  padding:
+                      const EdgeInsets.only(left: AppSpacing.lg),
+                  child: _coordCol('Longitude', Icons.compass_calibration,
+                      _currentPosition.longitude.toStringAsFixed(6),
+                      AppColors.accent),
+                )),
               ],
             ),
           ),
@@ -1220,14 +570,48 @@ Le rapport doit inclure:
     );
   }
 
+  Widget _coordCol(String label, IconData icon, String value, Color color) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.sm),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
+              ),
+              child: Icon(icon, color: color, size: 15),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Text(label,
+                style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w600)),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Text(value,
+            style: GoogleFonts.inter(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: AppColors.primary,
+                letterSpacing: -0.3)),
+      ],
+    );
+  }
+
+  // ── Speed gauge section ───────────────────────
   Widget _buildSpeedGaugeSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildModernSectionHeader('Vitesse en temps réel'),
-        const SizedBox(height: 16),
+        _buildSectionHeader('Vitesse en temps réel'),
+        const SizedBox(height: AppSpacing.lg),
         WaveBackgroundCard(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(AppSpacing.xxl),
           child: Center(
             child: AnimatedSpeedGauge(
               speed: _currentSpeed,
@@ -1241,28 +625,27 @@ Le rapport doit inclure:
     );
   }
 
-  Widget _buildModernMapCard() {
+  // ── Map card ──────────────────────────────────
+  Widget _buildMapCard() {
     return Container(
       height: 400,
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white, width: 4),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        border: Border.all(color: AppColors.white, width: 4),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 25,
-            offset: const Offset(0, 10),
-          ),
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 25,
+              offset: const Offset(0, 10)),
           BoxShadow(
-            color: Colors.blueAccent.withOpacity(0.1),
-            blurRadius: 40,
-            offset: const Offset(0, 15),
-          ),
+              color: AppColors.primaryLight.withOpacity(0.1),
+              blurRadius: 40,
+              offset: const Offset(0, 15)),
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppRadius.lg + 4),
         child: Stack(
           children: [
             FlutterMap(
@@ -1270,27 +653,24 @@ Le rapport doit inclure:
               options: MapOptions(
                 initialCenter: _currentPosition,
                 initialZoom: 13,
-                interactionOptions: const InteractionOptions(
-                  flags: InteractiveFlag.all,
-                ),
+                interactionOptions:
+                    const InteractionOptions(flags: InteractiveFlag.all),
               ),
               children: [
                 TileLayer(
-                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  urlTemplate:
+                      'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                   userAgentPackageName: 'com.example.primaa',
                 ),
-                // Geofencing circle
                 CircleLayer(
                   circles: [
                     CircleMarker(
                       point: const LatLng(
-                        35.661970525816834,
-                        10.958101377208251,
-                      ),
+                          35.661970525816834, 10.958101377208251),
                       radius: 500,
                       useRadiusInMeter: true,
-                      color: Colors.blue.withOpacity(0.15),
-                      borderColor: Colors.blue,
+                      color: AppColors.primaryLight.withOpacity(0.15),
+                      borderColor: AppColors.primaryLight,
                       borderStrokeWidth: 2,
                     ),
                   ],
@@ -1301,36 +681,37 @@ Le rapport doit inclure:
                       width: 60,
                       height: 60,
                       point: _currentPosition,
-                      child: _buildModernBoatMarker(),
+                      child: _buildBoatMarker(),
                     ),
                   ],
                 ),
               ],
             ),
+            // Contrôles carte
             Positioned(
               top: 20,
               right: 20,
               child: Column(
                 children: [
-                  _buildModernMapControl(
+                  _mapControl(
                     icon: Icons.my_location_rounded,
                     onTap: () => _mapController.move(
-                      _currentPosition,
-                      _mapController.camera.zoom,
-                    ),
+                        _currentPosition, _mapController.camera.zoom),
                     tooltip: 'Centrer sur la position',
                   ),
-                  const SizedBox(height: 12),
-                  _buildModernMapControl(
+                  const SizedBox(height: AppSpacing.md),
+                  _mapControl(
                     icon: _followOnMap
                         ? Icons.gps_fixed_rounded
                         : Icons.location_searching_rounded,
                     isActive: _followOnMap,
-                    onTap: () => setState(() => _followOnMap = !_followOnMap),
-                    tooltip: _followOnMap ? 'Suivi activé' : 'Activer le suivi',
+                    onTap: () =>
+                        setState(() => _followOnMap = !_followOnMap),
+                    tooltip:
+                        _followOnMap ? 'Suivi activé' : 'Activer le suivi',
                   ),
-                  const SizedBox(height: 12),
-                  _buildModernMapControl(
+                  const SizedBox(height: AppSpacing.md),
+                  _mapControl(
                     icon: Icons.layers_rounded,
                     onTap: () {},
                     tooltip: 'Changer de carte',
@@ -1338,11 +719,12 @@ Le rapport doit inclure:
                 ],
               ),
             ),
+            // Bouton suivre
             Positioned(
               left: 20,
               right: 20,
               bottom: 20,
-              child: _buildModernFollowButton(),
+              child: _buildFollowButton(),
             ),
           ],
         ),
@@ -1350,50 +732,41 @@ Le rapport doit inclure:
     );
   }
 
-  Widget _buildModernBoatMarker() {
+  Widget _buildBoatMarker() {
     return AnimatedBuilder(
       animation: Listenable.merge([_pulseController, _sonarController]),
       builder: (context, child) {
         return Stack(
           alignment: Alignment.center,
           children: [
-            // Sonar pulse circles - 3 expanding circles with fade out
-            _buildSonarCircle(0.0, 1.0), // First pulse
-            _buildSonarCircle(0.3, 0.8), // Second pulse (delayed)
-            _buildSonarCircle(0.6, 0.6), // Third pulse (delayed)
-            
-            // Original pulse ring
+            _sonarCircle(0.0, 1.0),
+            _sonarCircle(0.3, 0.8),
+            _sonarCircle(0.6, 0.6),
             Container(
               width: 55 + _pulseController.value * 10,
               height: 55 + _pulseController.value * 10,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.blueAccent.withOpacity(
-                  0.2 - _pulseController.value * 0.15,
-                ),
+                color: AppColors.primaryLight
+                    .withOpacity(0.2 - _pulseController.value * 0.15),
               ),
             ),
-            // Boat icon container
             Container(
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Colors.blueAccent, Colors.blue],
-                ),
-                borderRadius: BorderRadius.circular(20),
+                    colors: [AppColors.primaryLight, AppColors.primary]),
+                borderRadius: BorderRadius.circular(AppRadius.lg),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.blueAccent.withOpacity(0.4),
+                    color: AppColors.primaryLight.withOpacity(0.4),
                     blurRadius: 20,
                     offset: const Offset(0, 8),
                   ),
                 ],
               ),
-              padding: const EdgeInsets.all(8),
-              child: const Icon(
-                Icons.directions_boat_filled,
-                color: Colors.white,
-                size: 28,
-              ),
+              padding: const EdgeInsets.all(AppSpacing.sm),
+              child: const Icon(Icons.directions_boat_filled,
+                  color: AppColors.white, size: 28),
             ),
           ],
         );
@@ -1401,25 +774,24 @@ Le rapport doit inclure:
     );
   }
 
-  Widget _buildSonarCircle(double delay, double maxOpacity) {
-    final adjustedValue = (_sonarController.value + delay) % 1.0;
-    final size = 30.0 + adjustedValue * 50.0; // Expand from 30 to 80
-    final opacity = maxOpacity * (1.0 - adjustedValue); // Fade out as it expands
-    
+  Widget _sonarCircle(double delay, double maxOpacity) {
+    final v    = (_sonarController.value + delay) % 1.0;
+    final size = 30.0 + v * 50.0;
+    final op   = maxOpacity * (1.0 - v);
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
-          color: const Color(0xFF0EA5E9).withOpacity(opacity),
+          color: AppColors.primaryLight.withOpacity(op),
           width: 2.0,
         ),
       ),
     );
   }
 
-  Widget _buildModernMapControl({
+  Widget _mapControl({
     required IconData icon,
     required VoidCallback onTap,
     bool isActive = false,
@@ -1433,40 +805,33 @@ Le rapport doit inclure:
           width: 48,
           height: 48,
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.95),
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.15),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
+            color: AppColors.white.withOpacity(0.95),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            boxShadow: AppShadows.card,
             border: Border.all(
-              color: isActive ? const Color(0xFF0D47A1) : Colors.grey[300]!,
+              color: isActive ? AppColors.primary : AppColors.border,
               width: 2,
             ),
           ),
           child: Icon(
             icon,
-            size: 24,
-            color: isActive ? const Color(0xFF0D47A1) : Colors.grey[700],
+            size: 22,
+            color: isActive ? AppColors.primary : AppColors.textSecondary,
           ),
         ),
       ),
     );
   }
 
-  Widget _buildModernFollowButton() {
+  Widget _buildFollowButton() {
     return Container(
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF0D47A1), Color(0xFF1565C0)],
-        ),
-        borderRadius: BorderRadius.circular(20),
+            colors: [AppColors.primary, AppColors.primaryLight]),
+        borderRadius: BorderRadius.circular(AppRadius.xl),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF0D47A1).withOpacity(0.4),
+            color: AppColors.primary.withOpacity(0.4),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -1475,31 +840,389 @@ Le rapport doit inclure:
       child: ElevatedButton.icon(
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.transparent,
-          foregroundColor: Colors.white,
+          foregroundColor: AppColors.white,
           elevation: 0,
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+          padding: const EdgeInsets.symmetric(
+              vertical: AppSpacing.lg, horizontal: AppSpacing.xxl),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
+              borderRadius: BorderRadius.circular(AppRadius.xl)),
         ),
         onPressed: () {
           setState(() => _followOnMap = true);
-          _mapController.move(_currentPosition, _mapController.camera.zoom);
+          _mapController.move(
+              _currentPosition, _mapController.camera.zoom);
         },
         icon: const Icon(Icons.map_rounded, size: 20),
-        label: const Text(
-          'Suivre le bateau sur la carte',
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 15,
-            letterSpacing: 0.5,
-          ),
-        ),
+        label: const Text('Suivre le bateau sur la carte',
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
       ),
     );
   }
+
+  // ── Rapport IA ───────────────────────────────
+  Widget _buildGroqRapportSection(Boat boat) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Bouton générer
+        Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [AppColors.primary, AppColors.primaryLight],
+            ),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withOpacity(0.3),
+                blurRadius: 15,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.lg)),
+            ),
+            onPressed:
+                _rapportLoading ? null : () => _generateRapport(boat),
+            icon: _rapportLoading
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                        color: AppColors.white, strokeWidth: 2))
+                : const Text('⚡', style: TextStyle(fontSize: 18)),
+            label: Text(
+              _rapportLoading
+                  ? 'Groq génère le rapport...'
+                  : 'Générer Rapport IA',
+              style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.white),
+            ),
+          ),
+        ),
+        // Rapport affiché
+        if (_showRapport && _rapport != null) ...[
+          const SizedBox(height: AppSpacing.lg),
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.xl),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(AppRadius.lg),
+              border: Border.all(
+                  color: AppColors.primaryLight.withOpacity(0.3)),
+              boxShadow: AppShadows.subtle,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(AppSpacing.sm),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [AppColors.primary, AppColors.primaryLight],
+                        ),
+                        borderRadius: BorderRadius.circular(AppRadius.md),
+                      ),
+                      child: const Icon(Icons.description_outlined,
+                          color: AppColors.white, size: 18),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Text('Rapport Généré',
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary)),
+                    const Spacer(),
+                    IconButton(
+                      onPressed: () =>
+                          setState(() => _showRapport = false),
+                      icon: const Icon(Icons.close,
+                          size: 18, color: AppColors.textSecondary),
+                    ),
+                  ],
+                ),
+                Divider(color: AppColors.primaryLight.withOpacity(0.4)),
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  _rapport!,
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    height: 1.7,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                Text('Nom du responsable',
+                    style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary)),
+                const SizedBox(height: AppSpacing.sm),
+                TextField(
+                  controller: _responsableCtrl,
+                  decoration: InputDecoration(
+                    hintText: 'Ex: Roua Chehata',
+                    hintStyle: GoogleFonts.inter(
+                        color: AppColors.textSecondary),
+                    prefixIcon: const Icon(Icons.person_outline,
+                        color: AppColors.primaryLight),
+                    filled: true,
+                    fillColor: AppColors.white,
+                    border: OutlineInputBorder(
+                        borderRadius:
+                            BorderRadius.circular(AppRadius.md),
+                        borderSide: BorderSide(
+                            color: AppColors.border)),
+                    enabledBorder: OutlineInputBorder(
+                        borderRadius:
+                            BorderRadius.circular(AppRadius.md),
+                        borderSide: BorderSide(
+                            color: AppColors.primaryLight
+                                .withOpacity(0.4))),
+                    focusedBorder: OutlineInputBorder(
+                        borderRadius:
+                            BorderRadius.circular(AppRadius.md),
+                        borderSide: const BorderSide(
+                            color: AppColors.primaryLight, width: 2)),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.success,
+                      foregroundColor: AppColors.white,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: AppSpacing.lg),
+                      shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(AppRadius.md)),
+                      elevation: 0,
+                    ),
+                    onPressed: () => _downloadPdf(boat),
+                    icon: const Icon(Icons.picture_as_pdf),
+                    label: const Text('Télécharger PDF',
+                        style: TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  // ── Rapport IA — génération ────────────────
+  Future<void> _generateRapport(Boat boat) async {
+    setState(() {
+      _rapportLoading = true;
+      _rapport        = null;
+      _showRapport    = true;
+    });
+
+    const apiKey =
+        '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';
+    final prompt = '''
+Tu es un officier maritime. Génère un rapport d\'état professionnel en français.
+
+DONNÉES DU BATEAU:
+- Nom: ${boat.name}
+- Statut: ${boat.status}
+- Position GPS: Lat ${_currentPosition.latitude.toStringAsFixed(4)}, Lon ${_currentPosition.longitude.toStringAsFixed(4)}
+- Vitesse: ${_currentSpeed.toStringAsFixed(1)} noeuds
+- Dernière mise à jour: $_lastUpdate
+
+Le rapport doit inclure:
+1. RÉSUMÉ DE L\'ÉTAT
+2. POSITION & NAVIGATION
+3. ÉTAT TECHNIQUE
+4. RECOMMANDATIONS
+''';
+
+    try {
+      final response = await http.post(
+        Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
+        headers: {
+          'Authorization': 'Bearer $apiKey',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'model': 'llama-3.1-8b-instant',
+          'messages': [
+            {'role': 'user', 'content': prompt}
+          ],
+          'max_tokens': 800,
+          'temperature': 0.7,
+        }),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        setState(
+            () => _rapport = data['choices'][0]['message']['content']);
+      } else {
+        final error = jsonDecode(response.body);
+        setState(
+            () => _rapport = 'Erreur: ${error['error']['message']}');
+      }
+    } catch (e) {
+      setState(() => _rapport = 'Erreur connexion: $e');
+    } finally {
+      setState(() => _rapportLoading = false);
+    }
+  }
+
+  // ── PDF ───────────────────────────────────
+  Future<void> _downloadPdf(Boat boat) async {
+    if (_rapport == null) return;
+    final now = DateTime.now();
+    final dateStr =
+        '${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}';
+    final responsable = _responsableCtrl.text.trim().isEmpty
+        ? 'Non renseigné'
+        : _responsableCtrl.text.trim();
+
+    final pdf = pw.Document();
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(40),
+        header: (_) => pw.Container(
+          padding: const pw.EdgeInsets.only(bottom: 12),
+          decoration: const pw.BoxDecoration(
+            border: pw.Border(
+                bottom: pw.BorderSide(color: PdfColors.blue800, width: 2)),
+          ),
+          child: pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            children: [
+              pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text("RAPPORT D'ETAT MARITIME",
+                      style: pw.TextStyle(
+                          fontSize: 16,
+                          fontWeight: pw.FontWeight.bold,
+                          color: PdfColors.blue900)),
+                  pw.Text(boat.name,
+                      style: const pw.TextStyle(
+                          fontSize: 12, color: PdfColors.blue700)),
+                ],
+              ),
+              pw.Container(
+                padding: const pw.EdgeInsets.symmetric(
+                    horizontal: 12, vertical: 6),
+                decoration: pw.BoxDecoration(
+                  color: PdfColors.blue700,
+                  borderRadius: pw.BorderRadius.circular(20),
+                ),
+                child: pw.Text(boat.status,
+                    style: pw.TextStyle(
+                        color: PdfColors.white,
+                        fontWeight: pw.FontWeight.bold,
+                        fontSize: 10)),
+              ),
+            ],
+          ),
+        ),
+        footer: (context) => pw.Row( // On change "_" en "context"
+  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+  children: [
+    pw.Text(
+      'Généré le $dateStr — CONFIDENTIEL',
+      style: const pw.TextStyle(color: PdfColors.grey500, fontSize: 8),
+    ),
+    pw.Text(
+      // On utilise "context" ici au lieu de "_"
+      'Page ${context.pageNumber} / ${context.pagesCount}',
+      style: const pw.TextStyle(color: PdfColors.grey500, fontSize: 8),
+    ),
+  ],
+),
+        build: (_) => [
+          pw.SizedBox(height: 20),
+          pw.Text("RAPPORT D'ETAT DÉTAILLÉ",
+              style: pw.TextStyle(
+                  fontSize: 13,
+                  fontWeight: pw.FontWeight.bold,
+                  color: PdfColors.blue800)),
+          pw.Divider(color: PdfColors.blue200),
+          pw.SizedBox(height: 8),
+          pw.Text(_rapport!,
+              style:
+                  const pw.TextStyle(fontSize: 10.5, lineSpacing: 4)),
+          pw.SizedBox(height: 30),
+          pw.Container(
+            padding: const pw.EdgeInsets.all(16),
+            decoration: pw.BoxDecoration(
+              border: pw.Border.all(color: PdfColors.blue200),
+              borderRadius: pw.BorderRadius.circular(8),
+              color: PdfColors.blue50,
+            ),
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text('DÉCLARATION DE RESPONSABILITÉ',
+                    style: pw.TextStyle(
+                        fontSize: 11,
+                        fontWeight: pw.FontWeight.bold,
+                        color: PdfColors.blue900)),
+                pw.SizedBox(height: 10),
+                pw.Text(
+                    'Je, $responsable, déclare que les informations contenues dans ce rapport sont exactes. '
+                    'Je suis responsable de la sécurité et de la maintenance du ${boat.name}.',
+                    style: const pw.TextStyle(
+                        fontSize: 10, lineSpacing: 3)),
+                pw.SizedBox(height: 14),
+                pw.Row(
+                  mainAxisAlignment:
+                      pw.MainAxisAlignment.spaceBetween,
+                  children: [
+                    pw.Text('Date : $dateStr',
+                        style: pw.TextStyle(
+                            fontSize: 10,
+                            fontWeight: pw.FontWeight.bold)),
+                    pw.Text('Signature : $responsable',
+                        style: pw.TextStyle(
+                            fontSize: 10,
+                            fontWeight: pw.FontWeight.bold)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+    await Printing.layoutPdf(
+      onLayout: (format) async => pdf.save(),
+      name: 'rapport_${boat.name}.pdf',
+    );
+  }
+
+  IconData _statusIconData(String status) {
+    switch (status) {
+      case 'En mer':          return Icons.water;
+      case 'Au port':         return Icons.anchor;
+      case 'En maintenance':  return Icons.build;
+      default:                return Icons.help_outline;
+    }
+  }
 }
 
+// ── SubtleWavePainter (inchangé) ──────────────
 class SubtleWavePainter extends CustomPainter {
   final double animationValue;
   SubtleWavePainter(this.animationValue);
@@ -1508,42 +1231,24 @@ class SubtleWavePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (size.width == 0 || size.height == 0) return;
     final paint = Paint()..style = PaintingStyle.fill;
-    _drawSubtleWave(
-      canvas,
-      size,
-      paint..color = Colors.white.withOpacity(0.02),
-      0.85,
-      animationValue * 2 * math.pi,
-      30,
-    );
-    _drawSubtleWave(
-      canvas,
-      size,
-      paint..color = Colors.white.withOpacity(0.015),
-      0.9,
-      animationValue * 2 * math.pi + math.pi / 2,
-      20,
-    );
+    _drawSubtleWave(canvas, size,
+        paint..color = Colors.white.withOpacity(0.02),
+        0.85, animationValue * 2 * math.pi, 30);
+    _drawSubtleWave(canvas, size,
+        paint..color = Colors.white.withOpacity(0.015),
+        0.9, animationValue * 2 * math.pi + math.pi / 2, 20);
   }
 
-  void _drawSubtleWave(
-    Canvas canvas,
-    Size size,
-    Paint paint,
-    double yPosition,
-    double phase,
-    double amplitude,
-  ) {
+  void _drawSubtleWave(Canvas canvas, Size size, Paint paint,
+      double yPos, double phase, double amp) {
     if (size.width == 0 || size.height == 0) return;
-    final path = ui.Path();
-    final y = size.height * yPosition;
-    final waveLength = size.width / 3;
+    final path      = ui.Path();
+    final y         = size.height * yPos;
+    final waveLen   = size.width / 3;
     path.moveTo(0, y);
     for (double x = 0; x <= size.width; x += 3) {
-      path.lineTo(
-        x,
-        y + math.sin((x / waveLength * 2 * math.pi) + phase) * amplitude,
-      );
+      path.lineTo(x,
+          y + math.sin((x / waveLen * 2 * math.pi) + phase) * amp);
     }
     path.lineTo(size.width, size.height);
     path.lineTo(0, size.height);
@@ -1552,6 +1257,6 @@ class SubtleWavePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(SubtleWavePainter oldDelegate) =>
-      oldDelegate.animationValue != animationValue;
+  bool shouldRepaint(SubtleWavePainter old) =>
+      old.animationValue != animationValue;
 }

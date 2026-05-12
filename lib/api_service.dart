@@ -56,4 +56,14 @@ static Future<List<dynamic>> getCaptures() async {
   }
   return null;
 }
+
+static Future<Map<String, dynamic>?> getBoatsStatus() async {
+  try {
+    final response = await http.get(Uri.parse('$baseUrl/boats/status'));
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    }
+  } catch (_) {}
+  return null;
+}
 }

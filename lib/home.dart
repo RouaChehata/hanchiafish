@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:primaa/loginScreen.dart';
 import 'package:video_player/video_player.dart';
 import 'package:primaa/boat_detail_screen.dart';
 import 'package:primaa/models/boat_model.dart';
@@ -12,150 +13,25 @@ import 'package:primaa/screens/notifications_screen.dart';
 import 'package:primaa/add_boat_dialog.dart';
 import 'package:primaa/screens/statistics_screen.dart';
 import 'package:primaa/screens/captures_screen.dart';
+import 'package:primaa/screens/app theme.dart'; // ← Design System partagé
+import 'package:shared_preferences/shared_preferences.dart'; // ✅ Persistance
+import 'package:primaa/api_service.dart';                    // ✅ GPS Hanchia1
+import 'dart:convert';
+import 'dart:async';
 
+// ════════════════════════════════════════════════════════════════
+//  NOTE : AppColors, AppSpacing, AppRadius, AppGradients, AppShadows
+//  sont désormais centralisés dans screens/app_theme.dart.
+//  Les anciennes classes locales AppColors/AppTextStyles/AppSpacing/
+//  AppBorderRadius ont été SUPPRIMÉES de ce fichier.
+// ════════════════════════════════════════════════════════════════
 
-// Design System - Colors
-class AppColors {
-  static const Color primary = Color(0xFF1E3A8A);
-  static const Color primaryLight = Color(0xFF3B82F6);
-  static const Color accent = Color(0xFF77C0D8);
-  static const Color success = Color(0xFF10B981);
-  static const Color warning = Color(0xFFF59E0B);
-  static const Color error = Color(0xFFE11D48);
-  static const Color surface = Color(0xFFF5F7FA);
-  static const Color background = Color(0xFFFFFFFF);
-  static const Color textPrimary = Color(0xFF1E293B);
-  static const Color textSecondary = Color(0xFF64748B);
-  static const Color textTertiary = Color(0xFF94A3B8);
-  static const Color textOnPrimary = Color(0xFFFFFFFF);
-  static const Color border = Color(0xFFE2E8F0);
-  static const Color shadow = Color(0x0A000000);
-
-  // Status colors
-  static const Color statusAtSea = Color(0xFF10B981);
-  static const Color statusAtPort = Color(0xFFF59E0B);
-  static const Color statusMaintenance = Color(0xFFE11D48);
-  static const Color statusInactive = Color(0xFF94A3B8);
-}
-
-// Design System - Typography
-class AppTextStyles {
-  static const TextStyle h1 = TextStyle(
-    fontSize: 32,
-    fontWeight: FontWeight.w800,
-    color: AppColors.textPrimary,
-    letterSpacing: -1.0,
-  );
-
-  static const TextStyle h2 = TextStyle(
-    fontSize: 24,
-    fontWeight: FontWeight.w700,
-    color: AppColors.textPrimary,
-    letterSpacing: -0.5,
-  );
-
-  static const TextStyle h3 = TextStyle(
-    fontSize: 20,
-    fontWeight: FontWeight.w600,
-    color: AppColors.textPrimary,
-  );
-
-  static const TextStyle h4 = TextStyle(
-    fontSize: 18,
-    fontWeight: FontWeight.w600,
-    color: AppColors.textPrimary,
-  );
-
-  static const TextStyle body1 = TextStyle(
-    fontSize: 16,
-    fontWeight: FontWeight.w500,
-    color: AppColors.textPrimary,
-  );
-
-  static const TextStyle body2 = TextStyle(
-    fontSize: 14,
-    fontWeight: FontWeight.w400,
-    color: AppColors.textPrimary,
-  );
-
-  static const TextStyle caption = TextStyle(
-    fontSize: 12,
-    fontWeight: FontWeight.w500,
-    color: AppColors.textSecondary,
-  );
-
-  static const TextStyle small = TextStyle(
-    fontSize: 10,
-    fontWeight: FontWeight.w400,
-    color: AppColors.textTertiary,
-  );
-
-  static TextStyle appBarTitle = GoogleFonts.inter(
-    fontSize: 20,
-    fontWeight: FontWeight.w600,
-    color: AppColors.textOnPrimary,
-  );
-
-  static TextStyle dashboardTitle = GoogleFonts.bebasNeue(
-    fontSize: 28,
-    fontWeight: FontWeight.w700,
-    color: AppColors.textOnPrimary,
-    letterSpacing: 1.5,
-  );
-
-  static TextStyle metricValue = GoogleFonts.inter(
-    fontSize: 32,
-    fontWeight: FontWeight.w800,
-    color: AppColors.textOnPrimary,
-    letterSpacing: -1,
-  );
-
-  static TextStyle metricLabel = GoogleFonts.inter(
-    fontSize: 14,
-    fontWeight: FontWeight.w600,
-    color: AppColors.textOnPrimary,
-    letterSpacing: 0.2,
-  );
-
-  static TextStyle metricSubtitle = GoogleFonts.inter(
-    fontSize: 12,
-    fontWeight: FontWeight.w500,
-    color: AppColors.textOnPrimary.withOpacity(0.6),
-  );
-}
-
-// Design System - Spacing
-class AppSpacing {
-  static const double xs = 4.0;
-  static const double sm = 8.0;
-  static const double md = 12.0;
-  static const double lg = 16.0;
-  static const double xl = 20.0;
-  static const double xxl = 24.0;
-  static const double xxxl = 32.0;
-  static const double huge = 40.0;
-  static const double massive = 48.0;
-}
-
-// Design System - Border Radius
-class AppBorderRadius {
-  static const double sm = 8.0;
-  static const double md = 12.0;
-  static const double lg = 16.0;
-  static const double xl = 20.0;
-  static const double xxl = 24.0;
-  static const double round = 100.0;
-}
-
-class Home extends StatefulWidget {
-  final String userEmail;
-
-  const Home({super.key, required this.userEmail});
-
-  @override
-  State<Home> createState() => _HomeState();
-}
-
+// ─────────────────────────────────────────────
+//  VideoBackground
+//  ✅ BUG FIX : _loadBoats() utilisait "_boats" qui n'existait pas
+//  dans VideoBackgroundState. Corrigé en passant Boat.getDemoBoats()
+//  directement dans updateRealBoat().
+// ─────────────────────────────────────────────
 class VideoBackground extends StatefulWidget {
   const VideoBackground({super.key});
 
@@ -171,17 +47,14 @@ class VideoBackgroundState extends State<VideoBackground> {
   @override
   void initState() {
     super.initState();
-    _initVideo();
+    _initVideo(); // ✅ Nahina _loadBoats mel hna khatr mch blastou
   }
 
   Future<void> _initVideo() async {
-    if (_isInitialized &&
-        _staticController != null &&
-        _staticController!.value.isInitialized) {
+    if (_isInitialized && _staticController != null && _staticController!.value.isInitialized) {
       if (mounted) setState(() {});
       return;
     }
-
     _staticController = VideoPlayerController.asset('assets/videos/home.mp4');
     await _staticController!.initialize();
     _staticController!.addListener(_videoListener);
@@ -191,47 +64,21 @@ class VideoBackgroundState extends State<VideoBackground> {
   }
 
   void _videoListener() {
-    if (_staticController == null || !_staticController!.value.isInitialized)
-      return;
-
-    if (_staticController!.value.position >=
-            _staticController!.value.duration &&
-        _playCount < 1) {
+    if (_staticController == null || !_staticController!.value.isInitialized) return;
+    if (_staticController!.value.position >= _staticController!.value.duration && _playCount < 1) {
       _playCount++;
       _staticController!.seekTo(Duration.zero);
       _staticController!.play();
-    } else if (_playCount >= 1 &&
-        _staticController!.value.position >=
-            _staticController!.value.duration) {
+    } else if (_playCount >= 1 && _staticController!.value.position >= _staticController!.value.duration) {
       _staticController!.pause();
     }
   }
 
   @override
-  void dispose() {
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    if (!_isInitialized ||
-        _staticController == null ||
-        !_staticController!.value.isInitialized) {
-      return Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              AppColors.surface,
-              AppColors.primaryLight.withOpacity(0.1),
-              AppColors.primary.withOpacity(0.05),
-            ],
-          ),
-        ),
-      );
+    if (!_isInitialized || _staticController == null || !_staticController!.value.isInitialized) {
+      return Container(decoration: const BoxDecoration(gradient: AppGradients.bodyBackground));
     }
-
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -246,8 +93,7 @@ class VideoBackgroundState extends State<VideoBackground> {
         Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
+              begin: Alignment.topCenter, end: Alignment.bottomCenter,
               colors: [Colors.transparent, Colors.black.withOpacity(0.3)],
             ),
           ),
@@ -257,9 +103,74 @@ class VideoBackgroundState extends State<VideoBackground> {
   }
 }
 
+// ─────────────────────────────────────────────
+//  Home
+// ─────────────────────────────────────────────
+class Home extends StatefulWidget {
+  final String userEmail;
+  const Home({super.key, required this.userEmail});
+
+  @override
+  State<Home> createState() => _HomeState();
+}
+
 class _HomeState extends State<Home> {
-  final List<Boat> boats = Boat.getDemoBoats();
+  List<Boat> boats = [];          // ✅ Chargé depuis SharedPreferences
   String _selectedFilter = 'Tous';
+  Timer?  _boatTimer;
+  bool    _isLoading = true;
+
+  static const String _boatsKey = 'saved_boats';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBoatsFromStorage();
+  }
+
+  @override
+  void dispose() {
+    _boatTimer?.cancel();
+    super.dispose();
+  }
+
+  // ── Charger depuis SharedPreferences ──────────────────────
+  Future<void> _loadBoatsFromStorage() async {
+    final prefs   = await SharedPreferences.getInstance();
+    final jsonStr = prefs.getString(_boatsKey);
+    List<Boat> loaded;
+    if (jsonStr != null && jsonStr.isNotEmpty) {
+      try {
+        final list = jsonDecode(jsonStr) as List<dynamic>;
+        loaded = list.map((j) => Boat.fromJson(j as Map<String, dynamic>)).toList();
+      } catch (_) {
+        loaded = Boat.getDemoBoats();
+      }
+    } else {
+      loaded = Boat.getDemoBoats();
+      await _saveBoatsToStorage(loaded);
+    }
+    if (mounted) setState(() { boats = loaded; _isLoading = false; });
+    _startLiveTracking();
+  }
+
+  // ── Sauvegarder dans SharedPreferences ────────────────────
+  Future<void> _saveBoatsToStorage(List<Boat> list) async {
+    final prefs   = await SharedPreferences.getInstance();
+    final jsonStr = jsonEncode(list.map((b) => b.toJson()).toList());
+    await prefs.setString(_boatsKey, jsonStr);
+  }
+
+  // ── GPS live pour HanchiaFish-001 ─────────────────────────
+  void _startLiveTracking() {
+    _refreshData();
+    _boatTimer = Timer.periodic(const Duration(seconds: 5), (_) => _refreshData());
+  }
+
+  Future<void> _refreshData() async {
+    await Boat.updateRealBoat(boats);
+    if (mounted) setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -267,7 +178,7 @@ class _HomeState extends State<Home> {
     final stats = _calculateStats();
 
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.background,
       appBar: _buildAppBar(),
       drawer: _buildDrawer(),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
@@ -275,39 +186,30 @@ class _HomeState extends State<Home> {
         heroTag: 'addBoatFab',
         onPressed: _addBoat,
         backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.white,
         child: const Icon(Icons.add),
       ),
       body: Stack(
         children: [
-          Positioned.fill(child: VideoBackground()),
-          // Overlay semi-transparent pour améliorer la lisibilité
+          const Positioned.fill(child: VideoBackground()),
           Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(color: Colors.black.withOpacity(0.3)),
-            ),
+            child: Container(color: Colors.black.withOpacity(0.28)),
           ),
-          // Contenu principal
           RefreshIndicator(
             onRefresh: () async {
-              // Simuler un rafraîchissement
               await Future.delayed(const Duration(seconds: 1));
               setState(() {});
             },
+            color: AppColors.primaryLight,
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Dashboard avec statistiques principales
                   _buildDashboard(stats),
-
-                  // Filtres et titre de section
                   _buildSectionHeader(filteredBoats.length),
-
-                  // Liste des bateaux
                   _buildBoatsList(filteredBoats),
-
-                  const SizedBox(height: 20),
+                  const SizedBox(height: AppSpacing.xxl),
                 ],
               ),
             ),
@@ -317,133 +219,62 @@ class _HomeState extends State<Home> {
     );
   }
 
-  void _addBoat() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AddBoatDialog(
-          onAddBoat: (boat) {
-            setState(() {
-              boats.add(boat);
-            });
-            Navigator.of(context).pop();
-          },
-        );
-      },
-    );
-  }
-
-  void _deleteBoat(Boat boat) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Supprimer le bateau'),
-          content: Text('Êtes-vous sûr de vouloir supprimer ${boat.name} ?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text('Annuler'),
-            ),
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  boats.removeWhere((b) => b.id == boat.id);
-                });
-                Navigator.of(context).pop();
-              },
-              child: Text('Supprimer', style: TextStyle(color: Colors.red)),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
+  // ── AppBar ──────────────────────────────────────────────────
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       elevation: 0,
       backgroundColor: Colors.transparent,
+      toolbarHeight: 60,
       flexibleSpace: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              const Color(0xFF1E3A8A).withOpacity(0.85),
-              const Color(0xFF3B82F6).withOpacity(0.6),
-            ],
-          ),
-        ),
+        decoration: const BoxDecoration(gradient: AppGradients.primaryBar),
       ),
-      iconTheme: const IconThemeData(color: Colors.white),
+      iconTheme: const IconThemeData(color: AppColors.white),
       title: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(AppSpacing.sm),
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Colors.white.withOpacity(0.2),
-                width: 1,
-              ),
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              border: Border.all(color: Colors.white.withOpacity(0.2)),
             ),
-            child: const Icon(
-              Icons.directions_boat_filled,
-              color: Colors.white,
-              size: 20,
-            ),
+            child: const Icon(Icons.directions_boat_filled,
+                color: AppColors.white, size: 20),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.md),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'HanchiaFish',
-                style: GoogleFonts.bebasNeue(
-                  color: Colors.white,
-                  fontSize: 22,
-                  letterSpacing: 2,
-                ),
-              ),
+              Text('HanchiaFish',
+                  style: GoogleFonts.bebasNeue(
+                      color: AppColors.white, fontSize: 22, letterSpacing: 2)),
               Text(
                 'Bienvenue, ${widget.userEmail.split('@')[0]}',
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.75),
-                  fontSize: 11,
-                  fontWeight: FontWeight.w400,
-                ),
+                    color: AppColors.white.withOpacity(0.75),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w400),
               ),
             ],
           ),
         ],
       ),
       actions: [
-        // Notification button
         Stack(
           children: [
             Container(
-              margin: const EdgeInsets.all(8),
+              margin: const EdgeInsets.all(AppSpacing.sm),
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: Colors.white.withOpacity(0.2),
-                  width: 1,
-                ),
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                border: Border.all(color: Colors.white.withOpacity(0.2)),
               ),
               child: IconButton(
-                icon: const Icon(Icons.notifications_outlined),
-                onPressed: () {
-                  Navigator.push(
-                    context,
+                icon: const Icon(Icons.notifications_outlined,
+                    color: AppColors.white),
+                onPressed: () => Navigator.push(context,
                     MaterialPageRoute(
-                      builder: (context) => const NotificationsScreen(),
-                    ),
-                  );
-                },
-                color: Colors.white,
+                        builder: (_) => const NotificationsScreen())),
               ),
             ),
             Positioned(
@@ -455,55 +286,54 @@ class _HomeState extends State<Home> {
                 decoration: BoxDecoration(
                   color: AppColors.error,
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 1.5),
+                  border: Border.all(color: AppColors.white, width: 1.5),
                 ),
               ),
             ),
           ],
         ),
-        const SizedBox(width: 4),
+        const SizedBox(width: AppSpacing.xs),
       ],
     );
   }
 
+  // ── Dashboard ───────────────────────────────────────────────
   Widget _buildDashboard(Map<String, dynamic> stats) {
-    return Container(
-      margin: const EdgeInsets.all(20),
+    return Padding(
+      padding: const EdgeInsets.all(AppSpacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Vue d\'ensemble',
-            style: AppTextStyles.h2.copyWith(color: AppColors.textOnPrimary),
-          ),
-          const SizedBox(height: 24),
-          // Cartes modernes avec effet glassmorphism
+          Text('Vue d\'ensemble',
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  color: AppColors.white, fontWeight: FontWeight.w700)),
+          const SizedBox(height: AppSpacing.xl),
           Row(
             children: [
               Expanded(
-                child: _buildModernMetricCard(
-                  'Flotte active',
-                  stats['active'].toString(),
-                  '${stats['total']} bateaux',
-                  Icons.directions_boat,
-                  AppColors.primaryLight,
-                  [
-                    AppColors.primaryLight.withOpacity(0.1),
-                    AppColors.primary.withOpacity(0.05),
+                child: _metricCard(
+                  title: 'Flotte active',
+                  value: stats['active'].toString(),
+                  subtitle: '${stats['total']} bateaux',
+                  icon: Icons.directions_boat,
+                  color: AppColors.primaryLight,
+                  gradientColors: [
+                    AppColors.primaryLight.withOpacity(0.18),
+                    AppColors.primary.withOpacity(0.10),
                   ],
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: AppSpacing.lg),
               Expanded(
-                child: _buildModernMetricCard(
-                  'Caméras actives',
-                  stats['cameras'].toString(),
-                  '${stats['total']} total',
-                  Icons.videocam,
-                  AppColors.success,
-                  [
-                    AppColors.success.withOpacity(0.1),
-                    AppColors.success.withOpacity(0.05),
+                child: _metricCard(
+                  title: 'Caméras actives',
+                  value: stats['cameras'].toString(),
+                  subtitle: '${stats['total']} total',
+                  icon: Icons.videocam,
+                  color: AppColors.success,
+                  gradientColors: [
+                    AppColors.success.withOpacity(0.18),
+                    AppColors.success.withOpacity(0.08),
                   ],
                 ),
               ),
@@ -514,444 +344,291 @@ class _HomeState extends State<Home> {
     );
   }
 
-  Widget _buildModernMetricCard(
-    String title,
-    String value,
-    String subtitle,
-    IconData icon,
-    Color color,
-    List<Color> gradientColors,
-  ) {
+  Widget _metricCard({
+    required String title,
+    required String value,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+    required List<Color> gradientColors,
+  }) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        border: Border.all(color: Colors.white.withOpacity(0.2)),
         gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: gradientColors,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: gradientColors),
+        boxShadow: AppShadows.elevated,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Icône avec fond moderne
           Container(
-            width: 48,
-            height: 48,
+            width: 46,
+            height: 46,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: color.withOpacity(0.3), width: 1),
+              color: color.withOpacity(0.18),
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              border: Border.all(color: color.withOpacity(0.3)),
             ),
-            child: Icon(icon, color: color, size: 24),
+            child: Icon(icon, color: color, size: 22),
           ),
-          const SizedBox(height: 16),
-          // Valeur principale
-          Text(
-            value,
-            style: GoogleFonts.inter(
-              fontSize: 32,
-              fontWeight: FontWeight.w800,
-              color: Colors.white,
-              letterSpacing: -1,
-            ),
-          ),
+          const SizedBox(height: AppSpacing.lg),
+          Text(value,
+              style: const TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.white,
+                  letterSpacing: -1)),
           const SizedBox(height: 4),
-          // Titre
-          Text(
-            title,
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Colors.white.withOpacity(0.9),
-              letterSpacing: 0.2,
-            ),
-          ),
+          Text(title,
+              style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.white.withOpacity(0.9))),
           const SizedBox(height: 2),
-          // Sous-titre
-          Text(
-            subtitle,
-            style: GoogleFonts.inter(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: Colors.white.withOpacity(0.6),
-            ),
-          ),
+          Text(subtitle,
+              style: TextStyle(
+                  fontSize: 11, color: AppColors.white.withOpacity(0.6))),
         ],
       ),
     );
   }
 
-  Widget _buildMetricCard(
-    String title,
-    String value,
-    String subtitle,
-    IconData icon,
-    Color color,
-    Color bgColor,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: bgColor.withOpacity(0.60), // Semi-transparent pour voir la vidéo
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.18), width: 1),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(icon, color: color, size: 18),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 11,
-              color: Colors.grey[700],
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          if (subtitle.isNotEmpty) ...[
-            const SizedBox(height: 2),
-            Text(
-              subtitle,
-              style: TextStyle(fontSize: 10, color: Colors.grey[600]),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
+  // ── Section header ──────────────────────────────────────────
   Widget _buildSectionHeader(int count) {
     return Container(
-      color: Colors.transparent, // Enlever la barre blanche arrière-plan
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      color: Colors.transparent,
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
       child: Row(
         children: [
-          const Text('Flotte', style: AppTextStyles.h4),
-          const SizedBox(width: 8),
+          Text('Flotte',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: AppColors.white, fontWeight: FontWeight.w700)),
+          const SizedBox(width: AppSpacing.sm),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 4),
             decoration: BoxDecoration(
-              color: const Color(0xFF1E3A8A).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(AppRadius.round),
             ),
-            child: Text(
-              '$count',
-              style: const TextStyle(
-                color: Color(0xFF1E3A8A),
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
-              ),
-            ),
+            child: Text('$count',
+                style: const TextStyle(
+                    color: AppColors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12)),
           ),
           const Spacer(),
-          // Filtres
-          _buildFilterChip('Tous', _selectedFilter == 'Tous'),
-          const SizedBox(width: 8),
-          _buildFilterChip('En mer', _selectedFilter == 'En mer'),
-          const SizedBox(width: 8),
-          _buildFilterChip('Au port', _selectedFilter == 'Au port'),
-          const SizedBox(width: 8),
-          _buildFilterChip(
-            'En maintenance',
-            _selectedFilter == 'En maintenance',
-          ),
+          _filterChip('Tous',            _selectedFilter == 'Tous'),
+          const SizedBox(width: AppSpacing.sm),
+          _filterChip('En mer',          _selectedFilter == 'En mer'),
+          const SizedBox(width: AppSpacing.sm),
+          _filterChip('Au port',         _selectedFilter == 'Au port'),
+          const SizedBox(width: AppSpacing.sm),
+          _filterChip('En maintenance',  _selectedFilter == 'En maintenance'),
         ],
       ),
     );
   }
 
-  Widget _buildFilterChip(String label, bool isSelected) {
+  Widget _filterChip(String label, bool isSelected) {
     return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedFilter = label;
-        });
-      },
+      onTap: () => setState(() => _selectedFilter = label),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : AppColors.border,
-          borderRadius: BorderRadius.circular(20),
+          color: isSelected ? AppColors.white : Colors.white.withOpacity(0.18),
+          borderRadius: BorderRadius.circular(AppRadius.round),
+          border: isSelected
+              ? null
+              : Border.all(color: Colors.white.withOpacity(0.3)),
         ),
         child: Text(
           label,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: 11,
             fontWeight: FontWeight.w600,
-            color: isSelected
-                ? AppColors.textOnPrimary
-                : AppColors.textSecondary,
+            color: isSelected ? AppColors.primary : AppColors.white,
           ),
         ),
       ),
     );
   }
 
+  // ── Liste bateaux ───────────────────────────────────────────
   Widget _buildBoatsList(List<Boat> boatsList) {
     if (boatsList.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(40),
+      return Padding(
+        padding: const EdgeInsets.all(AppSpacing.huge),
         child: Center(
           child: Column(
             children: [
-              Icon(
-                Icons.directions_boat_outlined,
-                size: 64,
-                color: Colors.grey[400],
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Aucun bateau trouvé',
-                style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-              ),
+              Icon(Icons.directions_boat_outlined,
+                  size: 64, color: AppColors.white.withOpacity(0.5)),
+              const SizedBox(height: AppSpacing.lg),
+              Text('Aucun bateau trouvé',
+                  style: TextStyle(
+                      fontSize: 16,
+                      color: AppColors.white.withOpacity(0.7))),
             ],
           ),
         ),
       );
     }
-
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
       itemCount: boatsList.length,
-      itemBuilder: (context, index) {
-        return _buildProfessionalBoatCard(boatsList[index]);
-      },
+      itemBuilder: (_, i) => _buildBoatCard(boatsList[i]),
     );
   }
 
-  Widget _buildProfessionalBoatCard(Boat boat) {
-    Color statusColor;
-    IconData statusIcon;
-    switch (boat.status) {
-      case 'En mer':
-        statusColor = Colors.green;
-        statusIcon = Icons.water;
-        break;
-      case 'Au port':
-        statusColor = Colors.orange;
-        statusIcon = Icons.anchor;
-        break;
-      case 'En maintenance':
-        statusColor = Colors.red;
-        statusIcon = Icons.build;
-        break;
-      default:
-        statusColor = Colors.grey;
-        statusIcon = Icons.help_outline;
-    }
+  Widget _buildBoatCard(Boat boat) {
+    final statusColor = MaritimeStatusColor.fromStatus(boat.status);
+    final statusIcon  = _statusIcon(boat.status);
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12), // Réduit de 16 à 12
+      margin: const EdgeInsets.only(bottom: AppSpacing.md),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(
-          0.60,
-        ), // Semi-transparent pour voir la vidéo
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-        border: Border.all(color: Colors.grey[200]!, width: 1),
+        color: AppColors.white.withOpacity(0.93),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        boxShadow: AppShadows.card,
+        border: Border.all(color: statusColor.withOpacity(0.2), width: 1.5),
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => BoatDetailScreen(boat: boat)),
-            );
-          },
-          borderRadius: BorderRadius.circular(16),
+          onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => BoatDetailScreen(boat: boat))),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
           child: Padding(
-            padding: const EdgeInsets.all(12), // Réduit de 16 à 12
+            padding: const EdgeInsets.all(AppSpacing.md),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // En-tête avec nom et statut
+                // En-tête
                 Row(
                   children: [
-                    // Icône du bateau
                     Container(
-                      width: 40, // Réduit de 50 à 45
-                      height: 40, // Réduit de 50 à 45
+                      width: 42,
+                      height: 42,
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
+                        color: AppColors.primary.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(AppRadius.md),
                       ),
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppRadius.md),
                         child: Image.asset(
                           boat.imageUrl,
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return const Icon(
+                          errorBuilder: (_, __, ___) => const Icon(
                               Icons.directions_boat,
-                              color: Color(0xFF1E3A8A),
-                              size: 28,
-                            );
-                          },
+                              color: AppColors.primary,
+                              size: 24),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    // Nom et ID
+                    const SizedBox(width: AppSpacing.md),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            boat.name,
-                            style: const TextStyle(
-                              fontSize: 16, // Réduit de 18 à 16
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF1E3A8A),
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'ID: ${boat.id}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[600],
-                            ),
-                          ),
+                          Text(boat.name,
+                              style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.primary)),
+                          Text('ID: ${boat.id}',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(color: AppColors.textSecondary)),
                         ],
                       ),
                     ),
-                    // Badge de statut
+                    // Badge statut
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
+                          horizontal: AppSpacing.md, vertical: 5),
                       decoration: BoxDecoration(
                         color: statusColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: statusColor.withOpacity(0.3),
-                          width: 1,
-                        ),
+                        borderRadius: BorderRadius.circular(AppRadius.round),
+                        border:
+                            Border.all(color: statusColor.withOpacity(0.3)),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(statusIcon, size: 14, color: statusColor),
+                          Icon(statusIcon, size: 12, color: statusColor),
                           const SizedBox(width: 4),
-                          Text(
-                            boat.status,
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: statusColor,
-                            ),
-                          ),
+                          Text(boat.status,
+                              style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: statusColor)),
                         ],
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.md),
                 // Métriques
                 Row(
                   children: [
                     Expanded(
-                      child: _buildBoatMetric(
-                        Icons.speed,
-                        '${boat.speed.toStringAsFixed(1)} nœuds',
-                        'Vitesse',
-                        Colors.blue,
-                      ),
-                    ),
-                    Container(width: 1, height: 40, color: Colors.grey[200]),
+                        child: _boatMetric(Icons.speed,
+                            '${boat.speed.toStringAsFixed(1)} nœuds',
+                            'Vitesse', AppColors.primaryLight)),
+                    Container(width: 1, height: 36, color: AppColors.border),
                     Expanded(
-                      child: _buildBoatMetric(
-                        Icons.people,
-                        '${boat.crewMembers}',
-                        'Équipage',
-                        Colors.indigo,
-                      ),
-                    ),
-                    Container(width: 1, height: 40, color: Colors.grey[200]),
+                        child: _boatMetric(Icons.people, '${boat.crewMembers}',
+                            'Équipage', AppColors.primary)),
+                    Container(width: 1, height: 36, color: AppColors.border),
                     Expanded(
-                      child: _buildBoatMetric(
-                        boat.cameraActive ? Icons.videocam : Icons.videocam_off,
-                        boat.cameraActive ? 'Active' : 'Inactive',
-                        'Caméra',
-                        boat.cameraActive ? Colors.green : Colors.grey,
-                      ),
-                    ),
+                        child: _boatMetric(
+                            boat.cameraActive
+                                ? Icons.videocam
+                                : Icons.videocam_off,
+                            boat.cameraActive ? 'Active' : 'Inactive',
+                            'Caméra',
+                            boat.cameraActive
+                                ? AppColors.success
+                                : AppColors.textSecondary)),
                   ],
                 ),
-                const SizedBox(height: 12),
-                // Footer avec dernière mise à jour et actions
+                const SizedBox(height: AppSpacing.md),
+                // Footer
                 Row(
                   children: [
-                    Icon(Icons.access_time, size: 14, color: Colors.grey[600]),
+                    Icon(Icons.access_time,
+                        size: 13, color: AppColors.textSecondary),
                     const SizedBox(width: 4),
-                    Text(
-                      'Dernière mise à jour: ${boat.lastUpdate}',
-                      style: TextStyle(fontSize: 11, color: Colors.grey[600]),
-                    ),
+                    Text('Mis à jour : ${boat.lastUpdate}',
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodySmall
+                            ?.copyWith(color: AppColors.textSecondary)),
                     const Spacer(),
-                    // Delete button
                     GestureDetector(
                       onTap: () => _deleteBoat(boat),
                       child: Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: Colors.red.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
+                          color: AppColors.error.withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(AppRadius.sm),
                         ),
-                        child: Icon(
-                          Icons.delete_outline,
-                          size: 18,
-                          color: Colors.red,
-                        ),
+                        child: Icon(Icons.delete_outline,
+                            size: 16, color: AppColors.error),
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Icon(
-                      Icons.chevron_right,
-                      size: 20,
-                      color: Colors.grey[400],
-                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    const Icon(Icons.chevron_right,
+                        size: 20, color: AppColors.textSecondary),
                   ],
                 ),
               ],
@@ -962,399 +639,331 @@ class _HomeState extends State<Home> {
     );
   }
 
-  Widget _buildBoatMetric(
-    IconData icon,
-    String value,
-    String label,
-    Color color,
-  ) {
+  Widget _boatMetric(IconData icon, String value, String label, Color color) {
     return Column(
       children: [
-        Icon(icon, size: 20, color: color),
+        Icon(icon, size: 18, color: color),
         const SizedBox(height: 4),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
-        ),
-        Text(label, style: TextStyle(fontSize: 10, color: Colors.grey[600])),
+        Text(value,
+            style: TextStyle(
+                fontSize: 13, fontWeight: FontWeight.w700, color: color)),
+        Text(label,
+            style: Theme.of(context)
+                .textTheme
+                .bodySmall
+                ?.copyWith(color: AppColors.textSecondary)),
       ],
     );
   }
 
-  Map<String, dynamic> _calculateStats() {
-    final activeBoats = boats.where((b) => b.status == 'En mer').length;
-    final atSea = boats.where((b) => b.status == 'En mer').length;
-    final avgSpeed =
-        boats.map((b) => b.speed).reduce((a, b) => a + b) / boats.length;
-    final activeCameras = boats.where((b) => b.cameraActive).length;
+  IconData _statusIcon(String status) {
+    switch (status) {
+      case 'En mer':          return Icons.water;
+      case 'Au port':         return Icons.anchor;
+      case 'En maintenance':  return Icons.build;
+      default:                return Icons.help_outline;
+    }
+  }
 
+  Map<String, dynamic> _calculateStats() {
     return {
-      'total': boats.length,
-      'active': activeBoats,
-      'atSea': atSea,
-      'avgSpeed': avgSpeed,
-      'cameras': activeCameras,
+      'total':    boats.length,
+      'active':   boats.where((b) => b.status == 'En mer').length,
+      'cameras':  boats.where((b) => b.cameraActive).length,
+      'avgSpeed': boats.map((b) => b.speed).reduce((a, b) => a + b) / boats.length,
     };
   }
 
   List<Boat> _getFilteredBoats() {
-    if (_selectedFilter == 'Tous') {
-      return boats;
-    }
-    return boats.where((boat) => boat.status == _selectedFilter).toList();
+    if (_selectedFilter == 'Tous') return boats;
+    return boats.where((b) => b.status == _selectedFilter).toList();
   }
 
-  Widget _buildDrawer() {
-    return Drawer(
-      backgroundColor: AppColors.primary,
-      child: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color.fromARGB(255, 119, 192, 216),
-              Color.fromARGB(255, 63, 114, 175),
-              Color.fromARGB(255, 30, 58, 138),
-            ],
+  // ── Dialogs ─────────────────────────────────────────────────
+  void _addBoat() {
+    showDialog(
+      context: context,
+      builder: (_) => AddBoatDialog(
+        onAddBoat: (boat) async {
+          // ✅ FIX : pas de Navigator.pop() ici
+          // Le dialog se ferme lui-même dans _submit()
+          // Double pop() = écran blanc
+          setState(() => boats.add(boat));
+          await _saveBoatsToStorage(boats);
+        },
+      ),
+    );
+  }
+
+  void _deleteBoat(Boat boat) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.xl)),
+        title: Text('Supprimer le bateau',
+            style: const TextStyle(
+                color: AppColors.primary, fontWeight: FontWeight.w700)),
+        content: Text('Êtes-vous sûr de vouloir supprimer ${boat.name} ?'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Annuler')),
+          ElevatedButton(
+            onPressed: () async {
+              setState(() => boats.removeWhere((b) => b.id == boat.id));
+              await _saveBoatsToStorage(boats); // ✅ Persistance
+              if (context.mounted) Navigator.of(context).pop();
+            },
+            style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.error,
+                foregroundColor: AppColors.white),
+            child: const Text('Supprimer'),
           ),
-        ),
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            Container(
-              margin: const EdgeInsets.all(16),
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Color.fromARGB(255, 119, 192, 216),
-                    Color.fromARGB(255, 63, 114, 175),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color.fromARGB(
-                      255,
-                      119,
-                      192,
-                      216,
-                    ).withOpacity(0.3),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 60,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.white.withOpacity(0.3),
-                              Colors.white.withOpacity(0.1),
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.4),
-                            width: 2,
-                          ),
-                        ),
-                        child: const Icon(
-                          Icons.person_rounded,
-                          color: Colors.white,
-                          size: 32,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Bienvenue',
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              widget.userEmail.split('@')[0],
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                children: [
-                  _buildModernDrawerItem(
-                    icon: Icons.home_rounded,
-                    title: 'Accueil',
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
-                    isActive: true,
-                  ),
-                  const SizedBox(height: 4),
-                  _buildModernDrawerItem(
-                    icon: Icons.map_rounded,
-                    title: 'Carte',
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const MapScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 4),
-                  _buildModernDrawerItem(
-                    icon: Icons.videocam_rounded,
-                    title: 'Caméras',
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const CamerasScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 4),
-                  _buildModernDrawerItem(
-                    icon: Icons.history_rounded,
-                    title: 'Historique',
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const HistoryScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 4),
-                  _buildModernDrawerItem(
-                    icon: Icons.bar_chart_rounded,
-                    title: 'Statistiques',
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const StatisticsScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                const SizedBox(height: 4),
-                  _buildModernDrawerItem(
-                  icon: Icons.photo_camera,
-                  title: 'Captures d\'intrusion',
-                  onTap: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const CapturesScreen(),
-                   ),
-                  );
-                  },
-                ),
-                  const SizedBox(height: 4),
-                  _buildModernDrawerItem(
-                    icon: Icons.settings_rounded,
-                    title: 'Paramètres',
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const SettingsScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    height: 1,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Colors.transparent,
-                          const Color(0xFFE2E8F0),
-                          Colors.transparent,
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildModernDrawerItem(
-                    icon: Icons.logout_rounded,
-                    title: 'Déconnexion',
-                    onTap: () {
-                      // Déconnexion
-                    },
-                    isDestructive: true,
-                  ),
-                  const SizedBox(height: 20),
-                ],
-              ),
-            ),
+        ],
+      ),
+    );
+  }
+
+  // ── Drawer ───────────────────────────────────────────────────
+  Widget _buildDrawer() {
+  return Drawer(
+    backgroundColor: AppColors.primary,
+    child: Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.primary,
+            AppColors.primary.withOpacity(0.85),
+            const Color(0xFF0A2E5C),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildModernDrawerItem({
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-    bool isActive = false,
-    bool isDestructive = false,
-  }) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        gradient: isActive
-            ? const LinearGradient(
-                colors: [
-                  Color.fromARGB(255, 119, 192, 216),
-                  Color.fromARGB(255, 63, 114, 175),
-                ],
-              )
-            : null,
-        color: isActive ? null : Colors.white.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(16),
-        border: isActive
-            ? null
-            : Border.all(color: Colors.white.withOpacity(0.2), width: 1),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          // Header profil
+          Container(
+            margin: const EdgeInsets.all(AppSpacing.lg),
+            padding: const EdgeInsets.all(AppSpacing.xxl),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(AppRadius.xxl),
+              border: Border.all(color: Colors.white.withOpacity(0.2)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.15),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(10),
+                  width: 58,
+                  height: 58,
                   decoration: BoxDecoration(
-                    gradient: isDestructive
-                        ? const LinearGradient(
-                            colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
-                          )
-                        : isActive
-                        ? LinearGradient(
-                            colors: [
-                              Colors.white.withOpacity(0.3),
-                              Colors.white.withOpacity(0.1),
-                            ],
-                          )
-                        : null,
-                    color: isDestructive
-                        ? null
-                        : isActive
-                        ? null
-                        : Colors.white.withOpacity(0.7),
-                    borderRadius: BorderRadius.circular(12),
-                    border: isDestructive
-                        ? null
-                        : isActive
-                        ? Border.all(
-                            color: Colors.white.withOpacity(0.3),
-                            width: 1,
-                          )
-                        : Border.all(
-                            color: Colors.white.withOpacity(0.2),
-                            width: 1,
-                          ),
+                    color: Colors.white.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(AppRadius.lg),
+                    border: Border.all(
+                        color: Colors.white.withOpacity(0.3), width: 2),
                   ),
-                  child: Icon(
-                    icon,
-                    size: 22,
-                    color: isDestructive
-                        ? Colors.white
-                        : isActive
-                        ? Colors.white
-                        : Colors.white.withOpacity(0.8),
-                  ),
+                  child: const Icon(Icons.person_rounded,
+                      color: AppColors.white, size: 30),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: AppSpacing.lg),
                 Expanded(
-                  child: Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: isDestructive
-                          ? const Color(0xFFEF4444)
-                          : isActive
-                          ? Colors.white
-                          : Colors.white.withOpacity(0.9),
-                      letterSpacing: 0.3,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Bienvenue',
+                          style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500)),
+                      const SizedBox(height: 4),
+                      Text(
+                        widget.userEmail.split('@')[0],
+                        style: const TextStyle(
+                            color: AppColors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
                 ),
-                if (isActive)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Text(
-                      'Actif',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
               ],
             ),
           ),
+          const SizedBox(height: AppSpacing.sm),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            child: Column(
+              children: [
+                _drawerItem(icon: Icons.home_rounded,      title: 'Accueil',              isActive: true, onTap: () => Navigator.pop(context)),
+                const SizedBox(height: 4),
+                _drawerItem(icon: Icons.map_rounded,       title: 'Carte',                onTap: () => _navTo(context, const MapScreen())),
+                const SizedBox(height: 4),
+                _drawerItem(icon: Icons.videocam_rounded,  title: 'Caméras',              onTap: () => _navTo(context, const CamerasScreen())),
+                const SizedBox(height: 4),
+                _drawerItem(icon: Icons.history_rounded,   title: 'Historique',           onTap: () => _navTo(context, const HistoryScreen())),
+                const SizedBox(height: 4),
+                _drawerItem(icon: Icons.bar_chart_rounded, title: 'Statistiques',         onTap: () => _navTo(context, const StatisticsScreen())),
+                const SizedBox(height: 4),
+                _drawerItem(icon: Icons.photo_camera,      title: "Captures d'intrusion", onTap: () => _navTo(context, const CapturesScreen())),
+                const SizedBox(height: 4),
+                _drawerItem(icon: Icons.settings_rounded,  title: 'Paramètres',           onTap: () => _navTo(context, const SettingsScreen())),
+                const SizedBox(height: AppSpacing.lg),
+                Container(
+                  height: 1,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(colors: [
+                      Colors.transparent,
+                      Colors.white.withOpacity(0.3),
+                      Colors.transparent,
+                    ]),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                // ✅ Logout mwassal b Firebase + redirect lel Login
+                _drawerItem(
+                  icon: Icons.logout_rounded,
+                  title: 'Déconnexion',
+                  isDestructive: true,
+                  onTap: () async {
+                    Navigator.pop(context); // sakker el drawer awel
+                    showDialog(
+                      context: context,
+                      builder: (_) => AlertDialog(
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(AppRadius.xl)),
+                        title: const Text('Déconnexion',
+                            style: TextStyle(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w700)),
+                        content: const Text(
+                            'Êtes-vous sûr de vouloir vous déconnecter ?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Annuler'),
+                          ),
+                          ElevatedButton(
+                            onPressed: () async {
+                              Navigator.pop(context);
+                              await FirebaseAuth.instance.signOut();
+                              if (context.mounted) {
+                                Navigator.pushAndRemoveUntil(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (_) => const Login()),
+                                  (route) => false,
+                                );
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.error,
+                              foregroundColor: AppColors.white,
+                            ),
+                            child: const Text('Déconnexion'),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: AppSpacing.xl),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+void _navTo(BuildContext ctx, Widget screen) {
+  Navigator.pop(ctx);
+  Navigator.push(ctx, MaterialPageRoute(builder: (_) => screen));
+}
+
+Widget _drawerItem({
+  required IconData icon,
+  required String title,
+  required VoidCallback onTap,
+  bool isActive = false,
+  bool isDestructive = false,
+}) {
+  return Container(
+    margin: const EdgeInsets.symmetric(vertical: 2),
+    decoration: BoxDecoration(
+      color: isActive
+          ? Colors.white.withOpacity(0.2)
+          : isDestructive
+              ? AppColors.error.withOpacity(0.15)
+              : Colors.white.withOpacity(0.08),
+      borderRadius: BorderRadius.circular(AppRadius.lg),
+      border: Border.all(
+        color: isActive
+            ? Colors.white.withOpacity(0.4)
+            : isDestructive
+                ? AppColors.error.withOpacity(0.3)
+                : Colors.white.withOpacity(0.12),
+      ),
+    ),
+    child: Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.lg, vertical: AppSpacing.md),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(AppSpacing.sm),
+                decoration: BoxDecoration(
+                  color: isDestructive
+                      ? AppColors.error.withOpacity(0.2)
+                      : Colors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                ),
+                child: Icon(
+                  icon,
+                  color: isDestructive ? AppColors.error : AppColors.white,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    color: isDestructive ? AppColors.error : AppColors.white,
+                    fontSize: 15,
+                    fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                  ),
+                ),
+              ),
+              if (isActive)
+                Container(
+                  width: 6,
+                  height: 6,
+                  decoration: const BoxDecoration(
+                    color: AppColors.white,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

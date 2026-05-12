@@ -192,6 +192,36 @@ def get_capture_image(capture_id):
         return jsonify({"image": row[0], "timestamp": row[1]}), 200
     return jsonify({"message": "Capture non trouvée"}), 404
 
+@app.route('/captures/<int:id>', methods=['DELETE'])
+def delete_capture(id):
+    # supprimer de ta base de données
+    conn = sqlite3.connect('hanchia.db')
+    c = conn.cursor()
+    c.execute("DELETE FROM captures WHERE id=?", (id,))
+    conn.commit()
+    conn.close()
+    return '', 204
+
+@app.route('/boats/status', methods=['GET'])
+def get_boats_status():
+    conn = sqlite3.connect('hanchia.db')
+    c = conn.cursor()
+    c.execute("SELECT * FROM gps_data ORDER BY timestamp DESC LIMIT 1")
+    row = c.fetchone()
+    conn.close()
+    
+    if row:
+        in_port = check_geofencing(row[1], row[2])
+        return jsonify({
+            "boat_001": {
+                "status": "Au port" if in_port else "En mer",
+                "latitude": row[1],
+                "longitude": row[2],
+                "speed": row[3] if row[3] else 0
+            }
+        }), 200
+    return jsonify({}), 404
+
 if __name__ == '__main__':
     init_db()
     app.run(host='0.0.0.0', debug=True, port=5000)
