@@ -30,21 +30,19 @@ class _LiveIndicatorState extends State<LiveIndicator>
       vsync: this,
     )..repeat();
 
-    _scaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 1.4,
-    ).animate(CurvedAnimation(
-      parent: _pulseController,
-      curve: const Interval(0.0, 0.5, curve: Curves.easeOut),
-    ));
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.4).animate(
+      CurvedAnimation(
+        parent: _pulseController,
+        curve: const Interval(0.0, 0.5, curve: Curves.easeOut),
+      ),
+    );
 
-    _fadeAnimation = Tween<double>(
-      begin: 1.0,
-      end: 0.0,
-    ).animate(CurvedAnimation(
-      parent: _pulseController,
-      curve: const Interval(0.0, 0.5, curve: Curves.easeOut),
-    ));
+    _fadeAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
+      CurvedAnimation(
+        parent: _pulseController,
+        curve: const Interval(0.0, 0.5, curve: Curves.easeOut),
+      ),
+    );
   }
 
   @override
@@ -73,7 +71,9 @@ class _LiveIndicatorState extends State<LiveIndicator>
                     height: widget.size ?? 12,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: const Color(0xFF10B981).withOpacity(_fadeAnimation.value),
+                      color: const Color(
+                        0xFF10B981,
+                      ).withOpacity(_fadeAnimation.value),
                     ),
                   ),
                 ),
@@ -90,11 +90,12 @@ class _LiveIndicatorState extends State<LiveIndicator>
             );
           },
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: 8),
         // Text
         Text(
           widget.text!,
-          style: widget.textStyle ??
+          style:
+              widget.textStyle ??
               const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,

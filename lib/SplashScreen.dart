@@ -268,7 +268,7 @@ class _SplashscreenState extends State<Splashscreen>
                                     child: Container(
                                       width: 200,
                                       height: 200,
-                                      padding: const EdgeInsets.all(20),
+                                      padding: EdgeInsets.all(20),
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,
                                         border: Border.all(
@@ -292,7 +292,7 @@ class _SplashscreenState extends State<Splashscreen>
                           ),
                         ),
 
-                        const SizedBox(height: 40),
+                        SizedBox(height: 40),
 
                         // Animated title text
                         Transform.translate(
@@ -327,7 +327,7 @@ class _SplashscreenState extends State<Splashscreen>
                           ),
                         ),
 
-                        const SizedBox(height: 20),
+                        SizedBox(height: 20),
 
                         // Animated subtitle text
                         Transform.translate(
@@ -335,7 +335,7 @@ class _SplashscreenState extends State<Splashscreen>
                           child: Opacity(
                             opacity: _textOpacityAnimation.value,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(
+                              padding: EdgeInsets.symmetric(
                                 horizontal: 24,
                                 vertical: 12,
                               ),
@@ -399,7 +399,7 @@ class _SplashscreenState extends State<Splashscreen>
                             strokeWidth: 2,
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: 8),
                         // Version
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -409,7 +409,7 @@ class _SplashscreenState extends State<Splashscreen>
                               size: 12,
                               color: Colors.white.withOpacity(0.7),
                             ),
-                            const SizedBox(width: 4),
+                            SizedBox(width: 4),
                             Text(
                               "v1.0.0",
                               style: TextStyle(
@@ -438,7 +438,7 @@ class _SplashscreenState extends State<Splashscreen>
                           color: Colors.white.withOpacity(0.5),
                           size: 16,
                         ),
-                        const SizedBox(width: 4),
+                        SizedBox(width: 4),
                         Text(
                           "PREMIUM",
                           style: TextStyle(
@@ -465,7 +465,7 @@ class _SplashscreenState extends State<Splashscreen>
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
-        if (_controller.value < 0.6) return const SizedBox.shrink();
+        if (_controller.value < 0.6) return SizedBox.shrink();
 
         final rippleSize = 200 + (50 * math.sin((_controller.value - 0.6) * 6));
         final opacity = math.max(0.0, 0.3 - (_controller.value - 0.6) * 0.5);

@@ -10,7 +10,7 @@ import 'app theme.dart';
 //  (voir commentaire en bas de ce fichier).
 // ════════════════════════════════════════════════════════════════
 final ValueNotifier<ThemeMode> appThemeMode = ValueNotifier(ThemeMode.light);
-final ValueNotifier<Locale>    appLocale    = ValueNotifier(const Locale('fr'));
+final ValueNotifier<Locale> appLocale = ValueNotifier(const Locale('fr'));
 
 // ════════════════════════════════════════════════════════════════
 //  SettingsScreen
@@ -23,13 +23,13 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool   _notificationsEnabled = true;
-  bool   _soundEnabled         = true;
-  bool   _vibrationEnabled     = true;
-  bool   _autoRefreshEnabled   = true;
-  int    _refreshInterval      = 30;
-  String _selectedLanguage     = 'Français';
-  String _selectedTheme        = 'Clair';
+  bool _notificationsEnabled = true;
+  bool _soundEnabled = true;
+  bool _vibrationEnabled = true;
+  bool _autoRefreshEnabled = true;
+  int _refreshInterval = 30;
+  String _selectedLanguage = 'Français';
+  String _selectedTheme = 'Clair';
 
   // ── Appliquer le thème ─────────────────────────────────────
   void _applyTheme(String theme) {
@@ -68,12 +68,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
       appBar: const MaritimeAppBar(title: 'Paramètres'),
       headerContent: _buildProfileHeader(user),
       child: ListView(
-        padding: const EdgeInsets.all(AppSpacing.lg),
+        padding: EdgeInsets.all(AppSpacing.lg),
         children: [
           // ── Apparence ─────────────────────────
           _sectionTitle('Apparence'),
           _buildThemeSelector(),
-          const SizedBox(height: AppSpacing.sm),
+          SizedBox(height: AppSpacing.sm),
           _buildLanguageSelector(),
 
           // ── Notifications ─────────────────────
@@ -115,22 +115,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: "Intervalle d'actualisation",
               valueLabel: '${_refreshInterval}s',
               current: _refreshInterval.toDouble(),
-              min: 10, max: 60,
+              min: 10,
+              max: 60,
               onChanged: (v) => setState(() => _refreshInterval = v.toInt()),
             ),
 
           // ── Compte ────────────────────────────
           _sectionTitle('Compte'),
-          _navTile(icon: Icons.person,  title: 'Profil',
-              subtitle: 'Modifier les informations du profil'),
-          _navTile(icon: Icons.lock,    title: 'Sécurité',
-              subtitle: 'Mot de passe et authentification'),
+          _navTile(
+            icon: Icons.person,
+            title: 'Profil',
+            subtitle: 'Modifier les informations du profil',
+          ),
+          _navTile(
+            icon: Icons.lock,
+            title: 'Sécurité',
+            subtitle: 'Mot de passe et authentification',
+          ),
 
-        
-
-          const SizedBox(height: AppSpacing.xxl),
+          SizedBox(height: AppSpacing.xxl),
           _logoutButton(),
-          const SizedBox(height: AppSpacing.xxxl),
+          SizedBox(height: AppSpacing.xxxl),
         ],
       ),
     );
@@ -139,12 +144,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
   // ── Profil header (zone bleue) ─────────────────────────────
   Widget _buildProfileHeader(User? user) {
     return Padding(
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg, vertical: AppSpacing.lg),
+      padding: EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.lg,
+      ),
       child: Row(
         children: [
           Container(
-            width: 64, height: 64,
+            width: 64,
+            height: 64,
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.9),
               shape: BoxShape.circle,
@@ -152,21 +160,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             child: const Icon(Icons.person, size: 36, color: AppColors.primary),
           ),
-          const SizedBox(width: AppSpacing.lg),
+          SizedBox(width: AppSpacing.lg),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Administrateur',
-                    style: TextStyle(
-                        color: AppColors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700)),
+                const Text(
+                  'Administrateur',
+                  style: TextStyle(
+                    color: AppColors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
                 Text(
                   user?.email ?? 'admin@hanchiafish.com',
                   style: TextStyle(
-                      color: AppColors.white.withOpacity(0.85),
-                      fontSize: 13),
+                    color: AppColors.white.withOpacity(0.85),
+                    fontSize: 13,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
@@ -180,13 +192,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   // ── Sélecteur thème visuel ─────────────────────────────────
   Widget _buildThemeSelector() {
     final themes = [
-      ('Clair',       Icons.light_mode_outlined,  AppColors.warning),
-      ('Sombre',      Icons.dark_mode_outlined,   AppColors.primary),
-      ('Automatique', Icons.brightness_auto,       AppColors.info),
+      ('Clair', Icons.light_mode_outlined, AppColors.warning),
+      ('Sombre', Icons.dark_mode_outlined, AppColors.primary),
+      ('Automatique', Icons.brightness_auto, AppColors.info),
     ];
     return Container(
-      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      margin: EdgeInsets.only(bottom: AppSpacing.sm),
+      padding: EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -199,21 +211,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Row(
             children: [
               _iconBox(Icons.palette),
-              const SizedBox(width: AppSpacing.md),
+              SizedBox(width: AppSpacing.md),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Thème de l\'application',
-                      style: Theme.of(context).textTheme.bodyMedium
-                          ?.copyWith(fontWeight: FontWeight.w600)),
-                  Text('Actuellement : $_selectedTheme',
-                      style: Theme.of(context).textTheme.bodySmall
-                          ?.copyWith(color: AppColors.textSecondary)),
+                  Text(
+                    'Thème de l\'application',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Text(
+                    'Actuellement : $_selectedTheme',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
                 ],
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.md),
+          SizedBox(height: AppSpacing.md),
           Row(
             children: themes.map((t) {
               final isSelected = _selectedTheme == t.$1;
@@ -225,8 +243,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   },
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
-                    margin: const EdgeInsets.symmetric(horizontal: 3),
-                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    margin: EdgeInsets.symmetric(horizontal: 3),
+                    padding: EdgeInsets.symmetric(vertical: 10),
                     decoration: BoxDecoration(
                       color: isSelected
                           ? t.$3.withOpacity(0.1)
@@ -239,15 +257,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     child: Column(
                       children: [
-                        Icon(t.$2, color: isSelected ? t.$3 : AppColors.textSecondary,
-                            size: 22),
-                        const SizedBox(height: 4),
-                        Text(t.$1,
-                            style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: isSelected
-                                    ? FontWeight.w700 : FontWeight.w400,
-                                color: isSelected ? t.$3 : AppColors.textSecondary)),
+                        Icon(
+                          t.$2,
+                          color: isSelected ? t.$3 : AppColors.textSecondary,
+                          size: 22,
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          t.$1,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: isSelected
+                                ? FontWeight.w700
+                                : FontWeight.w400,
+                            color: isSelected ? t.$3 : AppColors.textSecondary,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -264,12 +289,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _buildLanguageSelector() {
     final langs = [
       ('Français', '🇫🇷', const Locale('fr')),
-      ('English',  '🇬🇧', const Locale('en')),
-      ('العربية',  '🇹🇳', const Locale('ar')),
+      ('English', '🇬🇧', const Locale('en')),
+      ('العربية', '🇹🇳', const Locale('ar')),
     ];
     return Container(
-      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      margin: EdgeInsets.only(bottom: AppSpacing.sm),
+      padding: EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -282,21 +307,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Row(
             children: [
               _iconBox(Icons.language),
-              const SizedBox(width: AppSpacing.md),
+              SizedBox(width: AppSpacing.md),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Langue',
-                      style: Theme.of(context).textTheme.bodyMedium
-                          ?.copyWith(fontWeight: FontWeight.w600)),
-                  Text('Actuellement : $_selectedLanguage',
-                      style: Theme.of(context).textTheme.bodySmall
-                          ?.copyWith(color: AppColors.textSecondary)),
+                  Text(
+                    'Langue',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Text(
+                    'Actuellement : $_selectedLanguage',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
                 ],
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.md),
+          SizedBox(height: AppSpacing.md),
           ...langs.map((l) {
             final isSelected = _selectedLanguage == l.$1;
             return GestureDetector(
@@ -306,9 +337,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-                padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.lg, vertical: AppSpacing.md),
+                margin: EdgeInsets.only(bottom: AppSpacing.sm),
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppSpacing.lg,
+                  vertical: AppSpacing.md,
+                ),
                 decoration: BoxDecoration(
                   color: isSelected
                       ? AppColors.primary.withOpacity(0.06)
@@ -322,25 +355,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: Row(
                   children: [
                     Text(l.$2, style: const TextStyle(fontSize: 22)),
-                    const SizedBox(width: AppSpacing.md),
+                    SizedBox(width: AppSpacing.md),
                     Expanded(
-                      child: Text(l.$1,
-                          style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: isSelected
-                                  ? FontWeight.w700 : FontWeight.w500,
-                              color: isSelected
-                                  ? AppColors.primary : AppColors.textPrimary)),
+                      child: Text(
+                        l.$1,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: isSelected
+                              ? FontWeight.w700
+                              : FontWeight.w500,
+                          color: isSelected
+                              ? AppColors.primary
+                              : AppColors.textPrimary,
+                        ),
+                      ),
                     ),
                     if (isSelected)
                       Container(
-                        padding: const EdgeInsets.all(3),
+                        padding: EdgeInsets.all(3),
                         decoration: const BoxDecoration(
                           color: AppColors.primary,
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.check,
-                            color: AppColors.white, size: 13),
+                        child: const Icon(
+                          Icons.check,
+                          color: AppColors.white,
+                          size: 13,
+                        ),
                       ),
                   ],
                 ),
@@ -355,11 +396,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
   // ── Section title ──────────────────────────────────────────
   Widget _sectionTitle(String title) {
     return Padding(
-      padding: const EdgeInsets.only(
-          top: AppSpacing.lg, bottom: AppSpacing.sm, left: 4),
-      child: Text(title,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: AppColors.primary, fontWeight: FontWeight.w700)),
+      padding: EdgeInsets.only(
+        top: AppSpacing.lg,
+        bottom: AppSpacing.sm,
+        left: 4,
+      ),
+      child: Text(
+        title,
+        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+          color: AppColors.primary,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
     );
   }
 
@@ -372,7 +420,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required ValueChanged<bool> onChanged,
   }) {
     return Container(
-      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+      margin: EdgeInsets.only(bottom: AppSpacing.sm),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -380,19 +428,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
         boxShadow: AppShadows.subtle,
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg, vertical: 4),
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: 4,
+        ),
         leading: _iconBox(icon),
-        title: Text(title,
-            style: Theme.of(context).textTheme.bodyMedium
-                ?.copyWith(fontWeight: FontWeight.w600)),
-        subtitle: Text(subtitle,
-            style: Theme.of(context).textTheme.bodySmall
-                ?.copyWith(color: AppColors.textSecondary)),
+        title: Text(
+          title,
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
+        ),
         trailing: Switch(
-            value: value,
-            onChanged: onChanged,
-            activeColor: AppColors.primary),
+          value: value,
+          onChanged: onChanged,
+          activeColor: AppColors.primary,
+        ),
       ),
     );
   }
@@ -405,7 +462,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     VoidCallback? onTap,
   }) {
     return Container(
-      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+      margin: EdgeInsets.only(bottom: AppSpacing.sm),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -413,15 +470,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
         boxShadow: AppShadows.subtle,
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg, vertical: 4),
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: 4,
+        ),
         leading: _iconBox(icon),
-        title: Text(title,
-            style: Theme.of(context).textTheme.bodyMedium
-                ?.copyWith(fontWeight: FontWeight.w600)),
-        subtitle: Text(subtitle,
-            style: Theme.of(context).textTheme.bodySmall
-                ?.copyWith(color: AppColors.textSecondary)),
+        title: Text(
+          title,
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
+        ),
         trailing: onTap != null
             ? const Icon(Icons.chevron_right, color: AppColors.textSecondary)
             : null,
@@ -441,8 +506,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required ValueChanged<double> onChanged,
   }) {
     return Container(
-      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      margin: EdgeInsets.only(bottom: AppSpacing.sm),
+      padding: EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -455,24 +520,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Row(
             children: [
               _iconBox(icon),
-              const SizedBox(width: AppSpacing.md),
+              SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title,
-                        style: Theme.of(context).textTheme.bodyMedium
-                            ?.copyWith(fontWeight: FontWeight.w600)),
-                    Text(valueLabel,
-                        style: Theme.of(context).textTheme.bodySmall
-                            ?.copyWith(color: AppColors.textSecondary)),
+                    Text(
+                      title,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Text(
+                      valueLabel,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
                   ],
                 ),
               ),
             ],
           ),
           Slider(
-            value: current, min: min, max: max,
+            value: current,
+            min: min,
+            max: max,
             activeColor: AppColors.primary,
             divisions: ((max - min) / 10).toInt(),
             onChanged: onChanged,
@@ -489,14 +562,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: ElevatedButton.icon(
         onPressed: _showLogoutDialog,
         icon: const Icon(Icons.logout),
-        label: const Text('Déconnexion',
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+        label: const Text(
+          'Déconnexion',
+          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+        ),
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.error,
           foregroundColor: AppColors.white,
-          padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+          padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
           shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppRadius.lg)),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+          ),
           elevation: 0,
         ),
       ),
@@ -505,7 +581,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _iconBox(IconData icon) {
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.sm),
+      padding: EdgeInsets.all(AppSpacing.sm),
       decoration: BoxDecoration(
         color: AppColors.primary.withOpacity(0.08),
         borderRadius: BorderRadius.circular(AppRadius.sm + 2),
@@ -515,14 +591,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _showSnack(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(msg),
-      backgroundColor: AppColors.primary,
-      behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md)),
-      duration: const Duration(seconds: 2),
-    ));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg),
+        backgroundColor: AppColors.primary,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+        ),
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   void _showLogoutDialog() {
@@ -530,16 +609,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.xl)),
-        title: const Text('Déconnexion',
-            style: TextStyle(
-                color: AppColors.primary, fontWeight: FontWeight.w700)),
-        content: const Text(
-            'Êtes-vous sûr de vouloir vous déconnecter ?'),
+          borderRadius: BorderRadius.circular(AppRadius.xl),
+        ),
+        title: const Text(
+          'Déconnexion',
+          style: TextStyle(
+            color: AppColors.primary,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        content: const Text('Êtes-vous sûr de vouloir vous déconnecter ?'),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Annuler')),
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Annuler'),
+          ),
           ElevatedButton(
             onPressed: () async {
               Navigator.pop(context);
@@ -553,8 +637,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               }
             },
             style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.error,
-                foregroundColor: AppColors.white),
+              backgroundColor: AppColors.error,
+              foregroundColor: AppColors.white,
+            ),
             child: const Text('Déconnexion'),
           ),
         ],

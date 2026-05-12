@@ -6,7 +6,6 @@ import 'package:flutter/services.dart';
 import 'package:primaa/home.dart';
 import 'package:primaa/signupScreen.dart';
 
-
 class Login extends StatefulWidget {
   const Login({super.key});
 
@@ -239,7 +238,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                 SafeArea(
                   child: Center(
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(
+                      padding: EdgeInsets.symmetric(
                         horizontal: 24.0,
                         vertical: 32.0,
                       ),
@@ -313,7 +312,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                                       child: Container(
                                         width: 150,
                                         height: 150,
-                                        padding: const EdgeInsets.all(15),
+                                        padding: EdgeInsets.all(15),
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
                                           border: Border.all(
@@ -334,7 +333,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                               ),
                             ),
                           ),
-                          const SizedBox(height: 40),
+                          SizedBox(height: 40),
 
                           // Login Form Card with transform animation
                           Transform.translate(
@@ -343,7 +342,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                               // CORRECTION: Assurons-nous que l'opacité reste dans les limites
                               opacity: _formAnimation.value.clamp(0.0, 1.0),
                               child: Container(
-                                padding: const EdgeInsets.all(28),
+                                padding: EdgeInsets.all(28),
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
                                     colors: [
@@ -392,7 +391,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                                             ),
                                           ),
                                         ),
-                                        const SizedBox(height: 8),
+                                        SizedBox(height: 8),
                                         Container(
                                           width: 60,
                                           height: 3,
@@ -412,7 +411,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                                         ),
                                       ],
                                     ),
-                                    const SizedBox(height: 40),
+                                    SizedBox(height: 40),
 
                                     // Email Field with improved design
                                     TextFormField(
@@ -425,10 +424,8 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                                       ),
                                       decoration: InputDecoration(
                                         prefixIcon: Container(
-                                          padding: const EdgeInsets.all(12),
-                                          margin: const EdgeInsets.only(
-                                            right: 8,
-                                          ),
+                                          padding: EdgeInsets.all(12),
+                                          margin: EdgeInsets.only(right: 8),
                                           decoration: BoxDecoration(
                                             color: const Color(
                                               0xFF1E88E5,
@@ -480,14 +477,13 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                                         ),
                                         filled: true,
                                         fillColor: Colors.white,
-                                        contentPadding:
-                                            const EdgeInsets.symmetric(
-                                              vertical: 20,
-                                              horizontal: 16,
-                                            ),
+                                        contentPadding: EdgeInsets.symmetric(
+                                          vertical: 20,
+                                          horizontal: 16,
+                                        ),
                                       ),
                                     ),
-                                    const SizedBox(height: 24),
+                                    SizedBox(height: 24),
 
                                     // Password Field with improved design
                                     TextFormField(
@@ -500,10 +496,8 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                                       ),
                                       decoration: InputDecoration(
                                         prefixIcon: Container(
-                                          padding: const EdgeInsets.all(12),
-                                          margin: const EdgeInsets.only(
-                                            right: 8,
-                                          ),
+                                          padding: EdgeInsets.all(12),
+                                          margin: EdgeInsets.only(right: 8),
                                           decoration: BoxDecoration(
                                             color: const Color(
                                               0xFF1E88E5,
@@ -569,11 +563,10 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                                         ),
                                         filled: true,
                                         fillColor: Colors.white,
-                                        contentPadding:
-                                            const EdgeInsets.symmetric(
-                                              vertical: 20,
-                                              horizontal: 16,
-                                            ),
+                                        contentPadding: EdgeInsets.symmetric(
+                                          vertical: 20,
+                                          horizontal: 16,
+                                        ),
                                       ),
                                     ),
 
@@ -588,7 +581,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                                           foregroundColor: const Color(
                                             0xFF1A237E,
                                           ),
-                                          padding: const EdgeInsets.symmetric(
+                                          padding: EdgeInsets.symmetric(
                                             horizontal: 16,
                                             vertical: 8,
                                           ),
@@ -607,7 +600,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                                       ),
                                     ),
 
-                                    const SizedBox(height: 30),
+                                    SizedBox(height: 30),
 
                                     // Sign In Button with improved design
                                     Container(
@@ -661,7 +654,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                                           child: Container(
                                             alignment: Alignment.center,
                                             child: _isLoading
-                                                ? const SizedBox(
+                                                ? SizedBox(
                                                     width: 24,
                                                     height: 24,
                                                     child:
@@ -684,12 +677,11 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                                                           letterSpacing: 1.0,
                                                         ),
                                                       ),
-                                                      const SizedBox(width: 8),
+                                                      SizedBox(width: 8),
                                                       Container(
-                                                        padding:
-                                                            const EdgeInsets.all(
-                                                              4,
-                                                            ),
+                                                        padding: EdgeInsets.all(
+                                                          4,
+                                                        ),
                                                         decoration:
                                                             BoxDecoration(
                                                               color: Colors
@@ -713,7 +705,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                                       ),
                                     ),
 
-                                    const SizedBox(height: 30),
+                                    SizedBox(height: 30),
 
                                     // Sign Up Link with improved design
                                     Row(
@@ -790,12 +782,12 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                           ),
 
                           // Premium badge at bottom
-                          const SizedBox(height: 30),
+                          SizedBox(height: 30),
                           Opacity(
                             // CORRECTION: Assurons-nous que l'opacité reste dans les limites
                             opacity: _formAnimation.value.clamp(0.0, 1.0),
                             child: Container(
-                              padding: const EdgeInsets.symmetric(
+                              padding: EdgeInsets.symmetric(
                                 horizontal: 16,
                                 vertical: 8,
                               ),
@@ -815,7 +807,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                                     color: Colors.white,
                                     size: 16,
                                   ),
-                                  const SizedBox(width: 6),
+                                  SizedBox(width: 6),
                                   const Text(
                                     "PREMIUM EDITION",
                                     style: TextStyle(

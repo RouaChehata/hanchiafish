@@ -22,7 +22,9 @@ class _CapturesScreenState extends State<CapturesScreen> {
     super.initState();
     _loadCaptures();
     _timer = Timer.periodic(
-        const Duration(seconds: 10), (_) => _loadCaptures());
+      const Duration(seconds: 10),
+      (_) => _loadCaptures(),
+    );
   }
 
   @override
@@ -35,7 +37,7 @@ class _CapturesScreenState extends State<CapturesScreen> {
     setState(() => _isLoading = true);
     final data = await ApiService.getCaptures();
     setState(() {
-      _captures  = data;
+      _captures = data;
       _isLoading = false;
     });
   }
@@ -61,20 +63,25 @@ class _CapturesScreenState extends State<CapturesScreen> {
       context: context,
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.xl)),
+          borderRadius: BorderRadius.circular(AppRadius.xl),
+        ),
         title: const Row(
           children: [
             Icon(Icons.delete_outline, color: AppColors.error, size: 22),
             SizedBox(width: AppSpacing.sm),
-            Text('Supprimer la capture',
-                style: TextStyle(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 16)),
+            Text(
+              'Supprimer la capture',
+              style: TextStyle(
+                color: AppColors.primary,
+                fontWeight: FontWeight.w700,
+                fontSize: 16,
+              ),
+            ),
           ],
         ),
         content: const Text(
-            'Voulez-vous supprimer définitivement cette capture ?'),
+          'Voulez-vous supprimer définitivement cette capture ?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -87,7 +94,8 @@ class _CapturesScreenState extends State<CapturesScreen> {
               foregroundColor: AppColors.white,
               elevation: 0,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.md)),
+                borderRadius: BorderRadius.circular(AppRadius.md),
+              ),
             ),
             child: const Text('Supprimer'),
           ),
@@ -108,33 +116,41 @@ class _CapturesScreenState extends State<CapturesScreen> {
     if (success) {
       // ✅ 3. Retirer de la liste locale SEULEMENT si l'API a réussi
       setState(() => _captures.removeAt(index));
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: const Row(
-          children: [
-            Icon(Icons.check_circle, color: Colors.white, size: 16),
-            SizedBox(width: 8),
-            Text('Capture supprimée définitivement'),
-          ],
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Row(
+            children: [
+              Icon(Icons.check_circle, color: Colors.white, size: 16),
+              SizedBox(width: 8),
+              Text('Capture supprimée définitivement'),
+            ],
+          ),
+          backgroundColor: AppColors.success,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.md),
+          ),
+          duration: const Duration(seconds: 2),
         ),
-        backgroundColor: AppColors.success,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.md)),
-        duration: const Duration(seconds: 2),
-      ));
+      );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: const Text('Erreur — impossible de supprimer'),
-        backgroundColor: AppColors.error,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.md)),
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Erreur — impossible de supprimer'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.md),
+          ),
+        ),
+      );
     }
 
     // ✅ 4. Relancer le timer
     _timer = Timer.periodic(
-        const Duration(seconds: 10), (_) => _loadCaptures());
+      const Duration(seconds: 10),
+      (_) => _loadCaptures(),
+    );
   }
 
   // ── Tout supprimer (API + local) ───────────────────────────
@@ -145,20 +161,25 @@ class _CapturesScreenState extends State<CapturesScreen> {
       context: context,
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.xl)),
+          borderRadius: BorderRadius.circular(AppRadius.xl),
+        ),
         title: const Row(
           children: [
             Icon(Icons.delete_sweep, color: AppColors.error, size: 22),
             SizedBox(width: AppSpacing.sm),
-            Text('Tout supprimer',
-                style: TextStyle(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 16)),
+            Text(
+              'Tout supprimer',
+              style: TextStyle(
+                color: AppColors.primary,
+                fontWeight: FontWeight.w700,
+                fontSize: 16,
+              ),
+            ),
           ],
         ),
         content: Text(
-            'Supprimer les ${_captures.length} captures définitivement ?'),
+          'Supprimer les ${_captures.length} captures définitivement ?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -171,7 +192,8 @@ class _CapturesScreenState extends State<CapturesScreen> {
               foregroundColor: AppColors.white,
               elevation: 0,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.md)),
+                borderRadius: BorderRadius.circular(AppRadius.md),
+              ),
             ),
             child: const Text('Tout supprimer'),
           ),
@@ -203,24 +225,29 @@ class _CapturesScreenState extends State<CapturesScreen> {
       _isLoading = false;
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Row(
-        children: [
-          const Icon(Icons.check_circle, color: Colors.white, size: 16),
-          const SizedBox(width: 8),
-          Text('$deleted capture(s) supprimée(s) définitivement'),
-        ],
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle, color: Colors.white, size: 16),
+            SizedBox(width: 8),
+            Text('$deleted capture(s) supprimée(s) définitivement'),
+          ],
+        ),
+        backgroundColor: AppColors.success,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+        ),
+        duration: const Duration(seconds: 3),
       ),
-      backgroundColor: AppColors.success,
-      behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md)),
-      duration: const Duration(seconds: 3),
-    ));
+    );
 
     // ✅ 5. Relancer le timer
     _timer = Timer.periodic(
-        const Duration(seconds: 10), (_) => _loadCaptures());
+      const Duration(seconds: 10),
+      (_) => _loadCaptures(),
+    );
   }
 
   @override
@@ -246,36 +273,38 @@ class _CapturesScreenState extends State<CapturesScreen> {
       body: _isLoading
           ? const MaritimeLoadingState(message: 'Chargement des captures…')
           : _captures.isEmpty
-              ? MaritimeEmptyState(
-                  icon: Icons.shield_outlined,
-                  title: 'Aucune capture d\'intrusion',
-                  subtitle:
-                      'Les captures apparaîtront ici\nlors de détections d\'intrusion.',
-                )
-              : Column(
-                  children: [
-                    // ── Bannière compteur ──────────────
-                    _buildAlertBanner(),
-                    // ── Grille ─────────────────────────
-                    Expanded(
-                      child: GridView.builder(
-                        padding: const EdgeInsets.fromLTRB(
-                            AppSpacing.lg, AppSpacing.md,
-                            AppSpacing.lg, AppSpacing.lg),
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
+          ? MaritimeEmptyState(
+              icon: Icons.shield_outlined,
+              title: 'Aucune capture d\'intrusion',
+              subtitle:
+                  'Les captures apparaîtront ici\nlors de détections d\'intrusion.',
+            )
+          : Column(
+              children: [
+                // ── Bannière compteur ──────────────
+                _buildAlertBanner(),
+                // ── Grille ─────────────────────────
+                Expanded(
+                  child: GridView.builder(
+                    padding: EdgeInsets.fromLTRB(
+                      AppSpacing.lg,
+                      AppSpacing.md,
+                      AppSpacing.lg,
+                      AppSpacing.lg,
+                    ),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 2,
                           crossAxisSpacing: AppSpacing.md,
                           mainAxisSpacing: AppSpacing.md,
                           childAspectRatio: 0.72,
                         ),
-                        itemCount: _captures.length,
-                        itemBuilder: (_, i) =>
-                            _buildCaptureCard(_captures[i], i),
-                      ),
-                    ),
-                  ],
+                    itemCount: _captures.length,
+                    itemBuilder: (_, i) => _buildCaptureCard(_captures[i], i),
+                  ),
                 ),
+              ],
+            ),
     );
   }
 
@@ -283,10 +312,16 @@ class _CapturesScreenState extends State<CapturesScreen> {
   Widget _buildAlertBanner() {
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.fromLTRB(
-          AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xs),
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg, vertical: AppSpacing.md),
+      margin: EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.lg,
+        AppSpacing.lg,
+        AppSpacing.xs,
+      ),
+      padding: EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.md,
+      ),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -300,15 +335,18 @@ class _CapturesScreenState extends State<CapturesScreen> {
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(AppSpacing.sm),
+            padding: EdgeInsets.all(AppSpacing.sm),
             decoration: BoxDecoration(
               color: AppColors.error.withOpacity(0.12),
               borderRadius: BorderRadius.circular(AppRadius.sm + 2),
             ),
-            child: const Icon(Icons.warning_amber_rounded,
-                color: AppColors.error, size: 20),
+            child: const Icon(
+              Icons.warning_amber_rounded,
+              color: AppColors.error,
+              size: 20,
+            ),
           ),
-          const SizedBox(width: AppSpacing.md),
+          SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -344,7 +382,9 @@ class _CapturesScreenState extends State<CapturesScreen> {
         borderRadius: BorderRadius.circular(AppRadius.lg),
         boxShadow: AppShadows.card,
         border: Border.all(
-            color: AppColors.error.withOpacity(0.18), width: 1.5),
+          color: AppColors.error.withOpacity(0.18),
+          width: 1.5,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -371,8 +411,11 @@ class _CapturesScreenState extends State<CapturesScreen> {
                       ),
                     ),
                     child: const Center(
-                      child: Icon(Icons.camera_enhance_outlined,
-                          size: 38, color: AppColors.error),
+                      child: Icon(
+                        Icons.camera_enhance_outlined,
+                        size: 38,
+                        color: AppColors.error,
+                      ),
                     ),
                   ),
                 ),
@@ -387,8 +430,7 @@ class _CapturesScreenState extends State<CapturesScreen> {
                       height: 30,
                       decoration: BoxDecoration(
                         color: AppColors.error,
-                        borderRadius:
-                            BorderRadius.circular(AppRadius.sm + 2),
+                        borderRadius: BorderRadius.circular(AppRadius.sm + 2),
                         boxShadow: [
                           BoxShadow(
                             color: AppColors.error.withOpacity(0.35),
@@ -397,8 +439,11 @@ class _CapturesScreenState extends State<CapturesScreen> {
                           ),
                         ],
                       ),
-                      child: const Icon(Icons.delete_outline,
-                          color: AppColors.white, size: 16),
+                      child: const Icon(
+                        Icons.delete_outline,
+                        color: AppColors.white,
+                        size: 16,
+                      ),
                     ),
                   ),
                 ),
@@ -408,8 +453,12 @@ class _CapturesScreenState extends State<CapturesScreen> {
 
           // ── Infos + bouton voir ────────────────
           Padding(
-            padding: const EdgeInsets.fromLTRB(
-                AppSpacing.md, AppSpacing.sm, AppSpacing.md, AppSpacing.md),
+            padding: EdgeInsets.fromLTRB(
+              AppSpacing.md,
+              AppSpacing.sm,
+              AppSpacing.md,
+              AppSpacing.md,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -424,35 +473,34 @@ class _CapturesScreenState extends State<CapturesScreen> {
                         color: AppColors.error,
                       ),
                     ),
-                    const SizedBox(width: 5),
+                    SizedBox(width: 5),
                     Text(
                       'Intrusion',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppColors.error,
-                            fontWeight: FontWeight.w700,
-                          ),
+                        color: AppColors.error,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 3),
+                SizedBox(height: 3),
                 // Timestamp
                 Text(
                   capture['timestamp'] ?? '',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textSecondary,
-                        fontSize: 10,
-                      ),
+                    color: AppColors.textSecondary,
+                    fontSize: 10,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: AppSpacing.sm),
+                SizedBox(height: AppSpacing.sm),
                 // Bouton voir la capture
                 GestureDetector(
                   onTap: () => _showCaptureDetail(capture['id']),
                   child: Container(
                     width: double.infinity,
-                    padding:
-                        const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                    padding: EdgeInsets.symmetric(vertical: AppSpacing.sm),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
                         colors: [AppColors.primary, AppColors.primaryLight],
@@ -462,15 +510,19 @@ class _CapturesScreenState extends State<CapturesScreen> {
                     child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.visibility_outlined,
-                            color: AppColors.white, size: 13),
+                        Icon(
+                          Icons.visibility_outlined,
+                          color: AppColors.white,
+                          size: 13,
+                        ),
                         SizedBox(width: 4),
                         Text(
                           'Voir',
                           style: TextStyle(
-                              color: AppColors.white,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700),
+                            color: AppColors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ],
                     ),
@@ -502,117 +554,137 @@ class _CapturesScreenState extends State<CapturesScreen> {
       context: context,
       builder: (_) => Dialog(
         shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.xl)),
+          borderRadius: BorderRadius.circular(AppRadius.xl),
+        ),
         child: ConstrainedBox(
-  constraints: BoxConstraints(
-    maxHeight: MediaQuery.of(context).size.height * 0.8,
-    maxWidth: MediaQuery.of(context).size.width * 0.9,
-  ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Header
-            Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.lg, vertical: AppSpacing.md),
-              decoration: const BoxDecoration(
-                gradient: AppGradients.primaryBar,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(AppRadius.xl),
-                  topRight: Radius.circular(AppRadius.xl),
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.8,
+            maxWidth: MediaQuery.of(context).size.width * 0.9,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppSpacing.lg,
+                  vertical: AppSpacing.md,
                 ),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(AppSpacing.sm - 2),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(AppRadius.sm),
-                    ),
-                    child: const Icon(Icons.warning_amber_rounded,
-                        color: AppColors.white, size: 18),
+                decoration: const BoxDecoration(
+                  gradient: AppGradients.primaryBar,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(AppRadius.xl),
+                    topRight: Radius.circular(AppRadius.xl),
                   ),
-                  const SizedBox(width: AppSpacing.sm),
-                  const Text(
-                    'Capture d\'intrusion',
-                    style: TextStyle(
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(AppSpacing.sm - 2),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
+                      ),
+                      child: const Icon(
+                        Icons.warning_amber_rounded,
+                        color: AppColors.white,
+                        size: 18,
+                      ),
+                    ),
+                    SizedBox(width: AppSpacing.sm),
+                    const Text(
+                      'Capture d\'intrusion',
+                      style: TextStyle(
                         color: AppColors.white,
                         fontWeight: FontWeight.w700,
-                        fontSize: 15),
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    icon: const Icon(Icons.close,
-                        color: AppColors.white, size: 20),
-                    onPressed: () => Navigator.pop(context),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                  ),
-                ],
+                        fontSize: 15,
+                      ),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.close,
+                        color: AppColors.white,
+                        size: 20,
+                      ),
+                      onPressed: () => Navigator.pop(context),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            // Image
-            ClipRRect(
-              child: data['image'] != null
-                ? ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: 400),
-                child: Image.memory(
-                      base64Decode(data['image']),
-                      fit: BoxFit.contain,
-                      width: double.infinity,
-                    )
-                )
-                  : Container(
-                      height: 180,
-                      color: AppColors.lightGrey,
-                      child: const Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.image_not_supported,
-                                size: 50, color: AppColors.textSecondary),
-                            SizedBox(height: AppSpacing.sm),
-                            Text('Image non disponible',
+              // Image
+              ClipRRect(
+                child: data['image'] != null
+                    ? ConstrainedBox(
+                        constraints: const BoxConstraints(maxHeight: 400),
+                        child: Image.memory(
+                          base64Decode(data['image']),
+                          fit: BoxFit.contain,
+                          width: double.infinity,
+                        ),
+                      )
+                    : Container(
+                        height: 180,
+                        color: AppColors.lightGrey,
+                        child: const Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.image_not_supported,
+                                size: 50,
+                                color: AppColors.textSecondary,
+                              ),
+                              SizedBox(height: AppSpacing.sm),
+                              Text(
+                                'Image non disponible',
                                 style: TextStyle(
-                                    color: AppColors.textSecondary,
-                                    fontSize: 12)),
-                          ],
+                                  color: AppColors.textSecondary,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+              ),
+              // Footer timestamp
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppSpacing.lg,
+                  vertical: AppSpacing.md,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.background,
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(AppRadius.xl),
+                    bottomRight: Radius.circular(AppRadius.xl),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.access_time,
+                      size: 13,
+                      color: AppColors.textSecondary,
+                    ),
+                    SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Text(
+                        data['timestamp'] ?? '',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.textSecondary,
                         ),
                       ),
                     ),
-            ),
-            // Footer timestamp
-            Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.lg, vertical: AppSpacing.md),
-              decoration: BoxDecoration(
-                color: AppColors.background,
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(AppRadius.xl),
-                  bottomRight: Radius.circular(AppRadius.xl),
+                  ],
                 ),
               ),
-              child: Row(
-                children: [
-                  const Icon(Icons.access_time,
-                      size: 13, color: AppColors.textSecondary),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: Text(
-                      data['timestamp'] ?? '',
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodySmall
-                          ?.copyWith(color: AppColors.textSecondary),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
       ),
     );
   }

@@ -23,8 +23,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     setState(() => _isLoading = true);
     final data = await ApiService.getAlertes();
     setState(() {
-      _alertes    = data;
-      _isLoading  = false;
+      _alertes = data;
+      _isLoading = false;
     });
   }
 
@@ -60,29 +60,29 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       body: _isLoading
           ? const MaritimeLoadingState(message: 'Chargement des alertes…')
           : _alertes.isEmpty
-              ? MaritimeEmptyState(
-                  icon: Icons.notifications_outlined,
-                  title: 'Aucune notification',
-                  subtitle: 'Vous n\'avez pas de nouvelles alertes',
-                )
-              : RefreshIndicator(
-                  onRefresh: _loadAlertes,
-                  color: AppColors.primaryLight,
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(AppSpacing.lg),
-                    itemCount: _alertes.length,
-                    itemBuilder: (_, i) {
-                      final a = _alertes[i];
-                      final style = _styleFor(a['type'] ?? '');
-                      return _buildCard(
-                        title:   a['type']    ?? 'Alerte',
-                        message: a['message'] ?? '',
-                        time:    a['timestamp'] ?? '',
-                        style:   style,
-                      );
-                    },
-                  ),
-                ),
+          ? MaritimeEmptyState(
+              icon: Icons.notifications_outlined,
+              title: 'Aucune notification',
+              subtitle: 'Vous n\'avez pas de nouvelles alertes',
+            )
+          : RefreshIndicator(
+              onRefresh: _loadAlertes,
+              color: AppColors.primaryLight,
+              child: ListView.builder(
+                padding: EdgeInsets.all(AppSpacing.lg),
+                itemCount: _alertes.length,
+                itemBuilder: (_, i) {
+                  final a = _alertes[i];
+                  final style = _styleFor(a['type'] ?? '');
+                  return _buildCard(
+                    title: a['type'] ?? 'Alerte',
+                    message: a['message'] ?? '',
+                    time: a['timestamp'] ?? '',
+                    style: style,
+                  );
+                },
+              ),
+            ),
     );
   }
 
@@ -93,7 +93,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     required _AlertStyle style,
   }) {
     return Container(
-      margin: const EdgeInsets.only(bottom: AppSpacing.md),
+      margin: EdgeInsets.only(bottom: AppSpacing.md),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -106,7 +106,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           onTap: () {},
           borderRadius: BorderRadius.circular(AppRadius.lg),
           child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.lg),
+            padding: EdgeInsets.all(AppSpacing.lg),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -116,12 +116,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   decoration: BoxDecoration(
                     color: style.color.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(AppRadius.md),
-                    border: Border.all(
-                        color: style.color.withOpacity(0.3)),
+                    border: Border.all(color: style.color.withOpacity(0.3)),
                   ),
                   child: Icon(style.icon, color: style.color, size: 22),
                 ),
-                const SizedBox(width: AppSpacing.lg),
+                SizedBox(width: AppSpacing.lg),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -131,12 +130,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           Expanded(
                             child: Text(
                               title,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleSmall
+                              style: Theme.of(context).textTheme.titleSmall
                                   ?.copyWith(
-                                      color: AppColors.textPrimary,
-                                      fontWeight: FontWeight.w700),
+                                    color: AppColors.textPrimary,
+                                    fontWeight: FontWeight.w700,
+                                  ),
                             ),
                           ),
                           MaritimeBadge(
@@ -147,27 +145,30 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         ],
                       ),
                       if (message.isNotEmpty) ...[
-                        const SizedBox(height: 4),
-                        Text(message,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
-                                ?.copyWith(
-                                    color: AppColors.textSecondary)),
+                        SizedBox(height: 4),
+                        Text(
+                          message,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: AppColors.textSecondary),
+                        ),
                       ],
-                      const SizedBox(height: AppSpacing.sm),
+                      SizedBox(height: AppSpacing.sm),
                       Row(
                         children: [
-                          const Icon(Icons.access_time,
-                              size: 12, color: AppColors.textSecondary),
-                          const SizedBox(width: 4),
-                          Text(time,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(
-                                      color: AppColors.textSecondary,
-                                      fontSize: 11)),
+                          const Icon(
+                            Icons.access_time,
+                            size: 12,
+                            color: AppColors.textSecondary,
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            time,
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 11,
+                                ),
+                          ),
                         ],
                       ),
                     ],

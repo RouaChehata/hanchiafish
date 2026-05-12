@@ -26,7 +26,11 @@ class _RapportScreenState extends State<RapportScreen> {
 
   Future<void> _generate() async {
     if (_selectedBoat == null) return;
-    setState(() { _loading = true; _error = null; _report = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+      _report = null;
+    });
     try {
       final result = await _groq.generateReport(_selectedBoat!);
       setState(() => _report = result);
@@ -43,7 +47,7 @@ class _RapportScreenState extends State<RapportScreen> {
       appBar: const MaritimeAppBar(title: 'Rapport IA'),
       backgroundColor: AppColors.background,
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppSpacing.lg),
+        padding: EdgeInsets.all(AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -52,16 +56,19 @@ class _RapportScreenState extends State<RapportScreen> {
               title: 'Rapport IA',
               subtitle: 'Génération automatique via IA',
               trailing: Container(
-                padding: const EdgeInsets.all(AppSpacing.md),
+                padding: EdgeInsets.all(AppSpacing.md),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
-                child: const Icon(Icons.auto_awesome,
-                    color: AppColors.white, size: 26),
+                child: const Icon(
+                  Icons.auto_awesome,
+                  color: AppColors.white,
+                  size: 26,
+                ),
               ),
             ),
-            const SizedBox(height: AppSpacing.xl),
+            SizedBox(height: AppSpacing.xl),
 
             // ── Info bateau ───────────────────────
             if (_selectedBoat != null) ...[
@@ -71,45 +78,56 @@ class _RapportScreenState extends State<RapportScreen> {
                 value: _selectedBoat!.name,
                 iconColor: AppColors.primaryLight,
               ),
-              const SizedBox(height: AppSpacing.xl),
+              SizedBox(height: AppSpacing.xl),
             ],
 
             // ── Bouton génération ─────────────────
             ElevatedButton.icon(
               onPressed: _loading ? null : _generate,
               icon: _loading
-                  ? const SizedBox(
+                  ? SizedBox(
                       width: 18,
                       height: 18,
                       child: CircularProgressIndicator(
-                          strokeWidth: 2, color: AppColors.white))
+                        strokeWidth: 2,
+                        color: AppColors.white,
+                      ),
+                    )
                   : const Icon(Icons.auto_awesome),
-              label: Text(_loading ? 'Génération en cours…' : 'Générer le Rapport'),
+              label: Text(
+                _loading ? 'Génération en cours…' : 'Générer le Rapport',
+              ),
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
               ),
             ),
-            const SizedBox(height: AppSpacing.xl),
+            SizedBox(height: AppSpacing.xl),
 
             // ── Erreur ────────────────────────────
             if (_error != null)
               Container(
-                padding: const EdgeInsets.all(AppSpacing.lg),
+                padding: EdgeInsets.all(AppSpacing.lg),
                 decoration: BoxDecoration(
                   color: AppColors.error.withOpacity(0.08),
                   borderRadius: BorderRadius.circular(AppRadius.md),
-                  border: Border.all(
-                      color: AppColors.error.withOpacity(0.3)),
+                  border: Border.all(color: AppColors.error.withOpacity(0.3)),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.error_outline,
-                        color: AppColors.error, size: 20),
-                    const SizedBox(width: AppSpacing.sm),
+                    const Icon(
+                      Icons.error_outline,
+                      color: AppColors.error,
+                      size: 20,
+                    ),
+                    SizedBox(width: AppSpacing.sm),
                     Expanded(
-                      child: Text(_error!,
-                          style: const TextStyle(
-                              color: AppColors.error, fontSize: 13)),
+                      child: Text(
+                        _error!,
+                        style: const TextStyle(
+                          color: AppColors.error,
+                          fontSize: 13,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -118,7 +136,7 @@ class _RapportScreenState extends State<RapportScreen> {
             // ── Rapport généré ────────────────────
             if (_report != null) ...[
               Container(
-                padding: const EdgeInsets.all(AppSpacing.xl),
+                padding: EdgeInsets.all(AppSpacing.xl),
                 decoration: BoxDecoration(
                   color: AppColors.white,
                   borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -130,14 +148,15 @@ class _RapportScreenState extends State<RapportScreen> {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.description_outlined,
-                            color: AppColors.primaryLight, size: 20),
-                        const SizedBox(width: AppSpacing.sm),
+                        const Icon(
+                          Icons.description_outlined,
+                          color: AppColors.primaryLight,
+                          size: 20,
+                        ),
+                        SizedBox(width: AppSpacing.sm),
                         Text(
                           'Rapport généré',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
+                          style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(color: AppColors.primary),
                         ),
                       ],
@@ -146,9 +165,9 @@ class _RapportScreenState extends State<RapportScreen> {
                     Text(
                       _report!,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: AppColors.textPrimary,
-                            height: 1.6,
-                          ),
+                        color: AppColors.textPrimary,
+                        height: 1.6,
+                      ),
                     ),
                   ],
                 ),

@@ -5,66 +5,67 @@
 // ════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
+export 'App theme.dart';
 
 // ─────────────────────────────────────────────
 //  COULEURS CENTRALES (miroir de MaritimeColors dans main.dart)
 // ─────────────────────────────────────────────
 class AppColors {
   // Bleus
-  static const Color primary       = Color(0xFF0A3D6B);
-  static const Color primaryLight  = Color(0xFF1565C0);
-  static const Color accent        = Color(0xFF1E88E5);
-  static const Color surface       = Color(0xFFE3F2FD);
+  static const Color primary = Color(0xFF0A3D6B);
+  static const Color primaryLight = Color(0xFF1565C0);
+  static const Color accent = Color(0xFF1E88E5);
+  static const Color surface = Color(0xFFE3F2FD);
 
   // Neutres
-  static const Color white         = Color(0xFFFFFFFF);
-  static const Color background    = Color(0xFFF5F8FC);
-  static const Color lightGrey     = Color(0xFFECF1F7);
-  static const Color border        = Color(0xFFDDE4EE);
+  static const Color white = Color(0xFFFFFFFF);
+  static const Color background = Color(0xFFF5F8FC);
+  static const Color lightGrey = Color(0xFFECF1F7);
+  static const Color border = Color(0xFFDDE4EE);
   static const Color textSecondary = Color(0xFF90A4AE);
-  static const Color textPrimary   = Color(0xFF37474F);
+  static const Color textPrimary = Color(0xFF37474F);
   static const Color textOnPrimary = Color(0xFFFFFFFF);
 
   // Sémantiques
-  static const Color success       = Color(0xFF26A69A);
-  static const Color warning       = Color(0xFFFFA726);
-  static const Color error         = Color(0xFFEF5350);
-  static const Color info          = Color(0xFF00ACC1);
+  static const Color success = Color(0xFF26A69A);
+  static const Color warning = Color(0xFFFFA726);
+  static const Color error = Color(0xFFEF5350);
+  static const Color info = Color(0xFF00ACC1);
 
   // Caméra
-  static const Color cameraActive   = Color(0xFF26A69A);
+  static const Color cameraActive = Color(0xFF26A69A);
   static const Color cameraInactive = Color(0xFF90A4AE);
 
   // Status bateaux
-  static const Color statusAtSea          = Color(0xFF26A69A);
-  static const Color statusAtPort         = Color(0xFFFFA726);
-  static const Color statusMaintenance    = Color(0xFFEF5350);
-  static const Color statusInactive       = Color(0xFF90A4AE);
+  static const Color statusAtSea = Color(0xFF26A69A);
+  static const Color statusAtPort = Color(0xFFFFA726);
+  static const Color statusMaintenance = Color(0xFFEF5350);
+  static const Color statusInactive = Color(0xFF90A4AE);
 }
 
 // ─────────────────────────────────────────────
 //  ESPACEMENT
 // ─────────────────────────────────────────────
 class AppSpacing {
-  static const double xs    = 4.0;
-  static const double sm    = 8.0;
-  static const double md    = 12.0;
-  static const double lg    = 16.0;
-  static const double xl    = 20.0;
-  static const double xxl   = 24.0;
-  static const double xxxl  = 32.0;
-  static const double huge  = 40.0;
+  static const double xs = 4.0;
+  static const double sm = 8.0;
+  static const double md = 12.0;
+  static const double lg = 16.0;
+  static const double xl = 20.0;
+  static const double xxl = 24.0;
+  static const double xxxl = 32.0;
+  static const double huge = 40.0;
 }
 
 // ─────────────────────────────────────────────
 //  BORDER RADIUS
 // ─────────────────────────────────────────────
 class AppRadius {
-  static const double sm    = 8.0;
-  static const double md    = 12.0;
-  static const double lg    = 16.0;
-  static const double xl    = 20.0;
-  static const double xxl   = 24.0;
+  static const double sm = 8.0;
+  static const double md = 12.0;
+  static const double lg = 16.0;
+  static const double xl = 20.0;
+  static const double xxl = 24.0;
   static const double round = 100.0;
 }
 
@@ -244,7 +245,9 @@ class MaritimeSectionTitle extends StatelessWidget {
     this.badge,
     this.badgeColor,
     this.padding = const EdgeInsets.symmetric(
-        horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
+      horizontal: AppSpacing.xl,
+      vertical: AppSpacing.lg,
+    ),
   });
 
   @override
@@ -256,9 +259,9 @@ class MaritimeSectionTitle extends StatelessWidget {
           Text(
             title,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w700,
-                ),
+              color: AppColors.primary,
+              fontWeight: FontWeight.w700,
+            ),
           ),
           const Spacer(),
           if (badge != null)
@@ -281,7 +284,8 @@ class MaritimeBadge extends StatelessWidget {
   final String label;
   final Color color;
   final IconData? icon;
-  final bool filled; // true = fond coloré, false = fond transparent avec texte coloré
+  final bool
+  filled; // true = fond coloré, false = fond transparent avec texte coloré
 
   const MaritimeBadge({
     super.key,
@@ -294,8 +298,10 @@ class MaritimeBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md, vertical: AppSpacing.sm - 2),
+      padding: EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm - 2,
+      ),
       decoration: BoxDecoration(
         color: filled ? color : color.withOpacity(0.12),
         borderRadius: BorderRadius.circular(AppRadius.round),
@@ -304,9 +310,8 @@ class MaritimeBadge extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[
-            Icon(icon, size: 12,
-                color: filled ? AppColors.white : color),
-            const SizedBox(width: 4),
+            Icon(icon, size: 12, color: filled ? AppColors.white : color),
+            SizedBox(width: 4),
           ],
           Text(
             label,
@@ -347,7 +352,7 @@ class MaritimeStatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -358,14 +363,14 @@ class MaritimeStatCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(AppSpacing.sm + 2),
+            padding: EdgeInsets.all(AppSpacing.sm + 2),
             decoration: BoxDecoration(
               color: color.withOpacity(0.1),
               borderRadius: BorderRadius.circular(AppRadius.md),
             ),
             child: Icon(icon, color: color, size: 22),
           ),
-          const SizedBox(height: AppSpacing.md),
+          SizedBox(height: AppSpacing.md),
           Text(
             value,
             style: TextStyle(
@@ -375,22 +380,22 @@ class MaritimeStatCard extends StatelessWidget {
               letterSpacing: -0.5,
             ),
           ),
-          const SizedBox(height: 2),
+          SizedBox(height: 2),
           Text(
             label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w500,
-                ),
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w500,
+            ),
           ),
           if (subtitle != null) ...[
-            const SizedBox(height: 2),
+            SizedBox(height: 2),
             Text(
               subtitle!,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.textSecondary.withOpacity(0.7),
-                    fontSize: 10,
-                  ),
+                color: AppColors.textSecondary.withOpacity(0.7),
+                fontSize: 10,
+              ),
             ),
           ],
         ],
@@ -425,8 +430,8 @@ class MaritimeInfoRow extends StatelessWidget {
     return Column(
       children: [
         Container(
-          margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-          padding: const EdgeInsets.all(AppSpacing.lg),
+          margin: EdgeInsets.only(bottom: AppSpacing.sm),
+          padding: EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
             color: AppColors.white,
             borderRadius: BorderRadius.circular(AppRadius.md),
@@ -435,29 +440,32 @@ class MaritimeInfoRow extends StatelessWidget {
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(AppSpacing.sm),
+                padding: EdgeInsets.all(AppSpacing.sm),
                 decoration: BoxDecoration(
                   color: (iconColor ?? AppColors.primaryLight).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(AppRadius.sm + 2),
                 ),
-                child: Icon(icon,
-                    color: iconColor ?? AppColors.primaryLight, size: 20),
+                child: Icon(
+                  icon,
+                  color: iconColor ?? AppColors.primaryLight,
+                  size: 20,
+                ),
               ),
-              const SizedBox(width: AppSpacing.md),
+              SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Text(
                   label,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
+                    color: AppColors.textSecondary,
+                  ),
                 ),
               ),
               Text(
                 value,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w700,
-                    ),
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ],
           ),
@@ -489,8 +497,8 @@ class MaritimeAlertRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      margin: EdgeInsets.only(bottom: AppSpacing.sm),
+      padding: EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -499,25 +507,27 @@ class MaritimeAlertRow extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(AppSpacing.sm),
+            padding: EdgeInsets.all(AppSpacing.sm),
             decoration: BoxDecoration(
               color: color.withOpacity(0.1),
               borderRadius: BorderRadius.circular(AppRadius.sm + 2),
             ),
             child: Icon(icon, color: color, size: 20),
           ),
-          const SizedBox(width: AppSpacing.md),
+          SizedBox(width: AppSpacing.md),
           Expanded(
             child: Text(
               title,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.md, vertical: AppSpacing.sm - 2),
+            padding: EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.sm - 2,
+            ),
             decoration: BoxDecoration(
               color: color.withOpacity(0.1),
               borderRadius: BorderRadius.circular(AppRadius.round),
@@ -558,7 +568,7 @@ class MaritimeGradientHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.xl),
+      padding: EdgeInsets.all(AppSpacing.xl),
       decoration: BoxDecoration(
         gradient: AppGradients.cardHeader,
         borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -580,7 +590,7 @@ class MaritimeGradientHeader extends StatelessWidget {
                   ),
                 ),
                 if (subtitle != null) ...[
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4),
                   Text(
                     subtitle!,
                     style: TextStyle(
@@ -606,10 +616,14 @@ class MaritimeGradientHeader extends StatelessWidget {
 class MaritimeStatusColor {
   static Color fromStatus(String status) {
     switch (status) {
-      case 'En mer':      return AppColors.statusAtSea;
-      case 'Au port':     return AppColors.statusAtPort;
-      case 'En maintenance': return AppColors.statusMaintenance;
-      default:            return AppColors.statusInactive;
+      case 'En mer':
+        return AppColors.statusAtSea;
+      case 'Au port':
+        return AppColors.statusAtPort;
+      case 'En maintenance':
+        return AppColors.statusMaintenance;
+      default:
+        return AppColors.statusInactive;
     }
   }
 }
@@ -632,12 +646,12 @@ class MaritimeLoadingState extends StatelessWidget {
             strokeWidth: 3,
           ),
           if (message != null) ...[
-            const SizedBox(height: AppSpacing.lg),
+            SizedBox(height: AppSpacing.lg),
             Text(
               message!,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
             ),
           ],
         ],
@@ -667,41 +681,38 @@ class MaritimeEmptyState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xxxl),
+        padding: EdgeInsets.all(AppSpacing.xxxl),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: const EdgeInsets.all(AppSpacing.xxl),
+              padding: EdgeInsets.all(AppSpacing.xxl),
               decoration: BoxDecoration(
                 color: AppColors.surface,
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, size: 48, color: AppColors.primaryLight),
             ),
-            const SizedBox(height: AppSpacing.xl),
+            SizedBox(height: AppSpacing.xl),
             Text(
               title,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w700,
-                  ),
+                color: AppColors.primary,
+                fontWeight: FontWeight.w700,
+              ),
               textAlign: TextAlign.center,
             ),
             if (subtitle != null) ...[
-              const SizedBox(height: AppSpacing.sm),
+              SizedBox(height: AppSpacing.sm),
               Text(
                 subtitle!,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
                 textAlign: TextAlign.center,
               ),
             ],
-            if (action != null) ...[
-              const SizedBox(height: AppSpacing.xl),
-              action!,
-            ],
+            if (action != null) ...[SizedBox(height: AppSpacing.xl), action!],
           ],
         ),
       ),

@@ -1,5 +1,5 @@
 import 'dart:math' as math;
-import 'package:firebase_auth/firebase_auth.dart' ;
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:primaa/home.dart';
@@ -117,7 +117,7 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
             content: Row(
               children: [
                 const Icon(Icons.error_outline, color: Colors.white),
-                const SizedBox(width: 10),
+                SizedBox(width: 10),
                 const Expanded(
                   child: Text(
                     "Clé de sécurité incorrecte. Inscription impossible.",
@@ -130,7 +130,7 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
             ),
-            margin: const EdgeInsets.all(12),
+            margin: EdgeInsets.all(12),
           ),
         );
         setState(() => _isLoading = false);
@@ -143,7 +143,7 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
             content: Row(
               children: [
                 const Icon(Icons.error_outline, color: Colors.white),
-                const SizedBox(width: 10),
+                SizedBox(width: 10),
                 const Expanded(
                   child: Text("L'adresse email est mal formatée."),
                 ),
@@ -154,7 +154,7 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
             ),
-            margin: const EdgeInsets.all(12),
+            margin: EdgeInsets.all(12),
           ),
         );
         setState(() => _isLoading = false);
@@ -167,7 +167,7 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
             content: Row(
               children: [
                 const Icon(Icons.error_outline, color: Colors.white),
-                const SizedBox(width: 10),
+                SizedBox(width: 10),
                 const Expanded(
                   child: Text("Les mots de passe ne correspondent pas."),
                 ),
@@ -178,7 +178,7 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
             ),
-            margin: const EdgeInsets.all(12),
+            margin: EdgeInsets.all(12),
           ),
         );
         setState(() => _isLoading = false);
@@ -240,7 +240,7 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
           content: Row(
             children: [
               const Icon(Icons.error_outline, color: Colors.white),
-              const SizedBox(width: 10),
+              SizedBox(width: 10),
               Expanded(child: Text(errorMessage)),
             ],
           ),
@@ -249,7 +249,7 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
-          margin: const EdgeInsets.all(12),
+          margin: EdgeInsets.all(12),
           duration: const Duration(seconds: 4),
         ),
       );
@@ -337,7 +337,7 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
                 SafeArea(
                   child: Center(
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(
+                      padding: EdgeInsets.symmetric(
                         horizontal: 24.0,
                         vertical: 32.0,
                       ),
@@ -411,7 +411,7 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
                                       child: Container(
                                         width: 130,
                                         height: 130,
-                                        padding: const EdgeInsets.all(15),
+                                        padding: EdgeInsets.all(15),
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
                                           border: Border.all(
@@ -432,7 +432,7 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
                               ),
                             ),
                           ),
-                          const SizedBox(height: 30),
+                          SizedBox(height: 30),
 
                           // Form Container
                           Transform.translate(
@@ -440,7 +440,7 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
                             child: Opacity(
                               opacity: _formAnimation.value.clamp(0.0, 1.0),
                               child: Container(
-                                padding: const EdgeInsets.all(28),
+                                padding: EdgeInsets.all(28),
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
                                     colors: [
@@ -489,7 +489,7 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
                                             ),
                                           ),
                                         ),
-                                        const SizedBox(height: 8),
+                                        SizedBox(height: 8),
                                         Container(
                                           width: 80,
                                           height: 3,
@@ -509,7 +509,7 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
                                         ),
                                       ],
                                     ),
-                                    const SizedBox(height: 35),
+                                    SizedBox(height: 35),
 
                                     // Email Field
                                     TextFormField(
@@ -522,10 +522,8 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
                                       ),
                                       decoration: InputDecoration(
                                         prefixIcon: Container(
-                                          padding: const EdgeInsets.all(12),
-                                          margin: const EdgeInsets.only(
-                                            right: 8,
-                                          ),
+                                          padding: EdgeInsets.all(12),
+                                          margin: EdgeInsets.only(right: 8),
                                           decoration: BoxDecoration(
                                             color: const Color(
                                               0xFF1E88E5,
@@ -577,14 +575,13 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
                                         ),
                                         filled: true,
                                         fillColor: Colors.white,
-                                        contentPadding:
-                                            const EdgeInsets.symmetric(
-                                              vertical: 20,
-                                              horizontal: 16,
-                                            ),
+                                        contentPadding: EdgeInsets.symmetric(
+                                          vertical: 20,
+                                          horizontal: 16,
+                                        ),
                                       ),
                                     ),
-                                    const SizedBox(height: 20),
+                                    SizedBox(height: 20),
 
                                     // Password Field
                                     TextFormField(
@@ -597,10 +594,8 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
                                       ),
                                       decoration: InputDecoration(
                                         prefixIcon: Container(
-                                          padding: const EdgeInsets.all(12),
-                                          margin: const EdgeInsets.only(
-                                            right: 8,
-                                          ),
+                                          padding: EdgeInsets.all(12),
+                                          margin: EdgeInsets.only(right: 8),
                                           decoration: BoxDecoration(
                                             color: const Color(
                                               0xFF1E88E5,
@@ -665,14 +660,13 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
                                         ),
                                         filled: true,
                                         fillColor: Colors.white,
-                                        contentPadding:
-                                            const EdgeInsets.symmetric(
-                                              vertical: 20,
-                                              horizontal: 16,
-                                            ),
+                                        contentPadding: EdgeInsets.symmetric(
+                                          vertical: 20,
+                                          horizontal: 16,
+                                        ),
                                       ),
                                     ),
-                                    const SizedBox(height: 20),
+                                    SizedBox(height: 20),
 
                                     // Confirm Password Field
                                     TextFormField(
@@ -685,10 +679,8 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
                                       ),
                                       decoration: InputDecoration(
                                         prefixIcon: Container(
-                                          padding: const EdgeInsets.all(12),
-                                          margin: const EdgeInsets.only(
-                                            right: 8,
-                                          ),
+                                          padding: EdgeInsets.all(12),
+                                          margin: EdgeInsets.only(right: 8),
                                           decoration: BoxDecoration(
                                             color: const Color(
                                               0xFF1E88E5,
@@ -754,14 +746,13 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
                                         ),
                                         filled: true,
                                         fillColor: Colors.white,
-                                        contentPadding:
-                                            const EdgeInsets.symmetric(
-                                              vertical: 20,
-                                              horizontal: 16,
-                                            ),
+                                        contentPadding: EdgeInsets.symmetric(
+                                          vertical: 20,
+                                          horizontal: 16,
+                                        ),
                                       ),
                                     ),
-                                    const SizedBox(height: 20),
+                                    SizedBox(height: 20),
 
                                     // Security Key Field
                                     TextFormField(
@@ -773,10 +764,8 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
                                       ),
                                       decoration: InputDecoration(
                                         prefixIcon: Container(
-                                          padding: const EdgeInsets.all(12),
-                                          margin: const EdgeInsets.only(
-                                            right: 8,
-                                          ),
+                                          padding: EdgeInsets.all(12),
+                                          margin: EdgeInsets.only(right: 8),
                                           decoration: BoxDecoration(
                                             color: const Color(
                                               0xFF1E88E5,
@@ -828,14 +817,13 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
                                         ),
                                         filled: true,
                                         fillColor: Colors.white,
-                                        contentPadding:
-                                            const EdgeInsets.symmetric(
-                                              vertical: 20,
-                                              horizontal: 16,
-                                            ),
+                                        contentPadding: EdgeInsets.symmetric(
+                                          vertical: 20,
+                                          horizontal: 16,
+                                        ),
                                       ),
                                     ),
-                                    const SizedBox(height: 35),
+                                    SizedBox(height: 35),
 
                                     // Sign Up Button
                                     Container(
@@ -889,7 +877,7 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
                                           child: Container(
                                             alignment: Alignment.center,
                                             child: _isLoading
-                                                ? const SizedBox(
+                                                ? SizedBox(
                                                     width: 24,
                                                     height: 24,
                                                     child:
@@ -912,12 +900,11 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
                                                           letterSpacing: 1.0,
                                                         ),
                                                       ),
-                                                      const SizedBox(width: 8),
+                                                      SizedBox(width: 8),
                                                       Container(
-                                                        padding:
-                                                            const EdgeInsets.all(
-                                                              4,
-                                                            ),
+                                                        padding: EdgeInsets.all(
+                                                          4,
+                                                        ),
                                                         decoration:
                                                             BoxDecoration(
                                                               color: Colors
@@ -941,7 +928,7 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
                                       ),
                                     ),
 
-                                    const SizedBox(height: 25),
+                                    SizedBox(height: 25),
 
                                     // Login Link
                                     Row(
@@ -1018,11 +1005,11 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
                           ),
 
                           // Premium badge at bottom
-                          const SizedBox(height: 30),
+                          SizedBox(height: 30),
                           Opacity(
                             opacity: _formAnimation.value.clamp(0.0, 1.0),
                             child: Container(
-                              padding: const EdgeInsets.symmetric(
+                              padding: EdgeInsets.symmetric(
                                 horizontal: 16,
                                 vertical: 8,
                               ),
@@ -1042,7 +1029,7 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
                                     color: Colors.white,
                                     size: 16,
                                   ),
-                                  const SizedBox(width: 6),
+                                  SizedBox(width: 6),
                                   const Text(
                                     "PREMIUM EDITION",
                                     style: TextStyle(

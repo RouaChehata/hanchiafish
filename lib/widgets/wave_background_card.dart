@@ -85,7 +85,7 @@ class _WaveBackgroundCardState extends State<WaveBackgroundCard>
           ),
           // Content
           Padding(
-            padding: widget.padding ?? const EdgeInsets.all(16),
+            padding: widget.padding ?? EdgeInsets.all(16),
             child: widget.child,
           ),
         ],
@@ -101,8 +101,7 @@ class WavePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..style = PaintingStyle.fill;
+    final paint = Paint()..style = PaintingStyle.fill;
 
     // Draw multiple wave layers
     _drawWave(
@@ -148,7 +147,8 @@ class WavePainter extends CustomPainter {
     path.moveTo(0, y);
 
     for (double x = 0; x <= size.width; x += 5) {
-      final waveY = y + math.sin((x / waveLength * 2 * math.pi) + phase) * amplitude;
+      final waveY =
+          y + math.sin((x / waveLength * 2 * math.pi) + phase) * amplitude;
       path.lineTo(x, waveY);
     }
 

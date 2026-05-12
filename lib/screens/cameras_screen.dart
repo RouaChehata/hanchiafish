@@ -29,7 +29,9 @@ class _CamerasScreenState extends State<CamerasScreen> {
     _loadCameraImage();
     _loadAlertes();
     _timer = Timer.periodic(
-        const Duration(seconds: 3), (_) => _loadCameraImage());
+      const Duration(seconds: 3),
+      (_) => _loadCameraImage(),
+    );
   }
 
   @override
@@ -48,7 +50,7 @@ class _CamerasScreenState extends State<CamerasScreen> {
         final data = jsonDecode(response.body);
         setState(() {
           _cameraImageBase64 = data['image'];
-          _imageTimestamp    = data['timestamp'];
+          _imageTimestamp = data['timestamp'];
         });
       }
     } catch (_) {
@@ -59,13 +61,14 @@ class _CamerasScreenState extends State<CamerasScreen> {
 
   Future<void> _loadAlertes() async {
     final alertes = await ApiService.getAlertes();
-    setState(() =>
-        _intrusion = alertes.any((a) => a['type'] == 'Intrusion détectée'));
+    setState(
+      () => _intrusion = alertes.any((a) => a['type'] == 'Intrusion détectée'),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final activeCameras   = _boats.where((b) => b.cameraActive).toList();
+    final activeCameras = _boats.where((b) => b.cameraActive).toList();
     final inactiveCameras = _boats.where((b) => !b.cameraActive).toList();
 
     return MaritimeScaffold(
@@ -78,23 +81,26 @@ class _CamerasScreenState extends State<CamerasScreen> {
           ),
         ],
       ),
-      headerContent:
-          _buildStatsHeader(activeCameras.length, inactiveCameras.length),
+      headerContent: _buildStatsHeader(
+        activeCameras.length,
+        inactiveCameras.length,
+      ),
       child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
+        padding: EdgeInsets.symmetric(vertical: AppSpacing.xl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ── Titre + badge intrustion (texte seulement) ──────
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+              padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
               child: Row(
                 children: [
                   Text(
                     'Caméra RPi — EN DIRECT',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w700),
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                   const Spacer(),
                   // ✅ Badge discret (pas d'overlay rouge sur la vidéo)
@@ -107,16 +113,16 @@ class _CamerasScreenState extends State<CamerasScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: AppSpacing.md),
+            SizedBox(height: AppSpacing.md),
 
             // ── Flux vidéo RPi ──────────────────────────────────
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+              padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
               child: _buildRealCameraCard(),
             ),
 
             // ── Caméras Actives ─────────────────────────────────
-            const SizedBox(height: AppSpacing.xl),
+            SizedBox(height: AppSpacing.xl),
             MaritimeSectionTitle(
               title: 'Caméras Actives',
               badge: '${activeCameras.length} actives',
@@ -125,7 +131,7 @@ class _CamerasScreenState extends State<CamerasScreen> {
             ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+              padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
               itemCount: activeCameras.length,
               itemBuilder: (_, i) =>
                   _buildCameraCard(activeCameras[i], isActive: true),
@@ -141,7 +147,7 @@ class _CamerasScreenState extends State<CamerasScreen> {
               SizedBox(
                 height: 200,
                 child: ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                  padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                   scrollDirection: Axis.horizontal,
                   itemCount: inactiveCameras.length,
                   itemBuilder: (_, i) =>
@@ -149,7 +155,7 @@ class _CamerasScreenState extends State<CamerasScreen> {
                 ),
               ),
             ],
-            const SizedBox(height: AppSpacing.xxl),
+            SizedBox(height: AppSpacing.xxl),
           ],
         ),
       ),
@@ -159,8 +165,12 @@ class _CamerasScreenState extends State<CamerasScreen> {
   // ── Stats header ─────────────────────────────────────────────
   Widget _buildStatsHeader(int active, int inactive) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
-          AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, 0),
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.sm,
+        AppSpacing.lg,
+        0,
+      ),
       child: Row(
         children: [
           Expanded(
@@ -171,7 +181,7 @@ class _CamerasScreenState extends State<CamerasScreen> {
               color: AppColors.success,
             ),
           ),
-          const SizedBox(width: AppSpacing.md),
+          SizedBox(width: AppSpacing.md),
           Expanded(
             child: _HeaderStatTile(
               icon: Icons.videocam_off,
@@ -220,47 +230,47 @@ class _CamerasScreenState extends State<CamerasScreen> {
                           fit: BoxFit.cover,
                           gaplessPlayback: true,
                           // ✅ Pas d'erreur visible — juste le fond noir
-                          errorBuilder: (_, __, ___) =>
-                              const SizedBox.shrink(),
+                          errorBuilder: (_, __, ___) => SizedBox.shrink(),
                         )
                       : Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               _isLoadingImage
-                                  ? const SizedBox(
+                                  ? SizedBox(
                                       width: 28,
                                       height: 28,
                                       child: CircularProgressIndicator(
-                                          color: Colors.white54,
-                                          strokeWidth: 2),
+                                        color: Colors.white54,
+                                        strokeWidth: 2,
+                                      ),
                                     )
-                                  : const Icon(Icons.videocam_off,
-                                      color: Colors.white24, size: 42),
-                              const SizedBox(height: AppSpacing.sm),
+                                  : const Icon(
+                                      Icons.videocam_off,
+                                      color: Colors.white24,
+                                      size: 42,
+                                    ),
+                              SizedBox(height: AppSpacing.sm),
                               const Text(
                                 'En attente de la caméra…',
                                 style: TextStyle(
-                                    color: Colors.white38, fontSize: 12),
+                                  color: Colors.white38,
+                                  fontSize: 12,
+                                ),
                               ),
                             ],
                           ),
                         ),
                 ),
                 // Badge EN DIRECT (coin haut-droite)
-                Positioned(
-                  top: 12,
-                  right: 12,
-                  child: _LiveDot(),
-                ),
+                Positioned(top: 12, right: 12, child: _LiveDot()),
                 // Timestamp (coin bas-gauche)
                 if (_imageTimestamp != null)
                   Positioned(
                     bottom: 12,
                     left: 12,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
+                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: Colors.black.withOpacity(0.55),
                         borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -268,7 +278,9 @@ class _CamerasScreenState extends State<CamerasScreen> {
                       child: Text(
                         _imageTimestamp!,
                         style: const TextStyle(
-                            color: Colors.white, fontSize: 11),
+                          color: Colors.white,
+                          fontSize: 11,
+                        ),
                       ),
                     ),
                   ),
@@ -278,8 +290,10 @@ class _CamerasScreenState extends State<CamerasScreen> {
 
             // ── Ligne de statut ─────────────────────
             Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.lg, vertical: AppSpacing.md),
+              padding: EdgeInsets.symmetric(
+                horizontal: AppSpacing.lg,
+                vertical: AppSpacing.md,
+              ),
               decoration: BoxDecoration(
                 color: _intrusion
                     ? AppColors.error.withOpacity(0.06)
@@ -287,31 +301,30 @@ class _CamerasScreenState extends State<CamerasScreen> {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.videocam,
-                      color: _intrusion
-                          ? AppColors.error
-                          : AppColors.success,
-                      size: 18),
-                  const SizedBox(width: AppSpacing.sm),
+                  Icon(
+                    Icons.videocam,
+                    color: _intrusion ? AppColors.error : AppColors.success,
+                    size: 18,
+                  ),
+                  SizedBox(width: AppSpacing.sm),
                   Text(
                     'Caméra Raspberry Pi',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: AppColors.primary),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleMedium?.copyWith(color: AppColors.primary),
                   ),
                   const Spacer(),
                   // Statut textuel uniquement
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 4),
+                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: (_intrusion ? AppColors.error : AppColors.success)
                           .withOpacity(0.12),
                       borderRadius: BorderRadius.circular(AppRadius.round),
                       border: Border.all(
-                        color: (_intrusion
-                                ? AppColors.error
-                                : AppColors.success)
-                            .withOpacity(0.35),
+                        color:
+                            (_intrusion ? AppColors.error : AppColors.success)
+                                .withOpacity(0.35),
                       ),
                     ),
                     child: Text(
@@ -319,9 +332,7 @@ class _CamerasScreenState extends State<CamerasScreen> {
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
-                        color: _intrusion
-                            ? AppColors.error
-                            : AppColors.success,
+                        color: _intrusion ? AppColors.error : AppColors.success,
                       ),
                     ),
                   ),
@@ -341,8 +352,7 @@ class _CamerasScreenState extends State<CamerasScreen> {
 
     return Container(
       width: isActive ? double.infinity : 280,
-      margin: const EdgeInsets.only(
-          bottom: AppSpacing.lg, right: AppSpacing.md),
+      margin: EdgeInsets.only(bottom: AppSpacing.lg, right: AppSpacing.md),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(AppRadius.xl),
@@ -366,13 +376,14 @@ class _CamerasScreenState extends State<CamerasScreen> {
                   height: isActive ? 200 : 150,
                   width: double.infinity,
                   decoration: const BoxDecoration(
-                      gradient: AppGradients.cardHeader),
+                    gradient: AppGradients.cardHeader,
+                  ),
                   child: isRealBoat && _cameraImageBase64 != null
                       ? Image.memory(
                           base64Decode(_cameraImageBase64!),
                           fit: BoxFit.cover,
                           gaplessPlayback: true,
-                          errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                          errorBuilder: (_, __, ___) => SizedBox.shrink(),
                         )
                       : Image.asset(
                           boat.imageUrl,
@@ -381,10 +392,12 @@ class _CamerasScreenState extends State<CamerasScreen> {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.videocam,
-                                    size: 40,
-                                    color: Colors.white.withOpacity(0.7)),
-                                const SizedBox(height: AppSpacing.sm),
+                                Icon(
+                                  Icons.videocam,
+                                  size: 40,
+                                  color: Colors.white.withOpacity(0.7),
+                                ),
+                                SizedBox(height: AppSpacing.sm),
                                 Text(
                                   'Caméra ${boat.name}',
                                   style: TextStyle(
@@ -407,9 +420,7 @@ class _CamerasScreenState extends State<CamerasScreen> {
                     color: isActive
                         ? AppColors.success
                         : AppColors.cameraInactive,
-                    icon: isActive
-                        ? Icons.circle
-                        : Icons.circle_outlined,
+                    icon: isActive ? Icons.circle : Icons.circle_outlined,
                   ),
                 ),
                 // Badge LIVE (coin bas-gauche des actives)
@@ -418,24 +429,28 @@ class _CamerasScreenState extends State<CamerasScreen> {
                     bottom: 10,
                     left: 10,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 3),
+                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
                         color: Colors.black.withOpacity(0.5),
-                        borderRadius:
-                            BorderRadius.circular(AppRadius.sm),
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.play_circle_filled,
-                              color: Colors.white, size: 13),
+                          Icon(
+                            Icons.play_circle_filled,
+                            color: Colors.white,
+                            size: 13,
+                          ),
                           SizedBox(width: 4),
-                          Text('LIVE',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold)),
+                          Text(
+                            'LIVE',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -445,7 +460,7 @@ class _CamerasScreenState extends State<CamerasScreen> {
             ),
             // Footer
             Padding(
-              padding: const EdgeInsets.all(AppSpacing.lg),
+              padding: EdgeInsets.all(AppSpacing.lg),
               child: Row(
                 children: [
                   Expanded(
@@ -454,26 +469,23 @@ class _CamerasScreenState extends State<CamerasScreen> {
                       children: [
                         Text(
                           boat.name,
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
+                          style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(color: AppColors.primary),
                         ),
-                        const SizedBox(height: 3),
+                        SizedBox(height: 3),
                         Row(
                           children: [
-                            const Icon(Icons.location_on,
-                                size: 12,
-                                color: AppColors.textSecondary),
-                            const SizedBox(width: 3),
+                            const Icon(
+                              Icons.location_on,
+                              size: 12,
+                              color: AppColors.textSecondary,
+                            ),
+                            SizedBox(width: 3),
                             Text(
                               '${boat.latitude.toStringAsFixed(4)}, '
                               '${boat.longitude.toStringAsFixed(4)}',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(
-                                      color: AppColors.textSecondary),
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(color: AppColors.textSecondary),
                             ),
                           ],
                         ),
@@ -513,8 +525,9 @@ class _LiveDotState extends State<_LiveDot>
   void initState() {
     super.initState();
     _ctrl = AnimationController(
-        vsync: this, duration: const Duration(seconds: 1))
-      ..repeat(reverse: true);
+      vsync: this,
+      duration: const Duration(seconds: 1),
+    )..repeat(reverse: true);
     _anim = Tween<double>(begin: 0.5, end: 1.0).animate(_ctrl);
   }
 
@@ -529,8 +542,7 @@ class _LiveDotState extends State<_LiveDot>
     return AnimatedBuilder(
       animation: _anim,
       builder: (_, __) => Container(
-        padding:
-            const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
           color: Colors.black.withOpacity(0.55),
           borderRadius: BorderRadius.circular(AppRadius.round),
@@ -546,7 +558,7 @@ class _LiveDotState extends State<_LiveDot>
                 color: AppColors.success.withOpacity(_anim.value),
               ),
             ),
-            const SizedBox(width: 5),
+            SizedBox(width: 5),
             const Text(
               'EN DIRECT',
               style: TextStyle(
@@ -580,7 +592,7 @@ class _HeaderStatTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.9),
         borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -589,18 +601,20 @@ class _HeaderStatTile extends StatelessWidget {
       child: Column(
         children: [
           Icon(icon, color: color, size: 26),
-          const SizedBox(height: AppSpacing.sm),
+          SizedBox(height: AppSpacing.sm),
           Text(
             value,
             style: TextStyle(
-                fontSize: 22, fontWeight: FontWeight.w800, color: color),
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              color: color,
+            ),
           ),
           Text(
             label,
-            style: Theme.of(context)
-                .textTheme
-                .bodySmall
-                ?.copyWith(color: AppColors.textSecondary),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
           ),
         ],
       ),

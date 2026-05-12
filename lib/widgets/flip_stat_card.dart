@@ -41,13 +41,9 @@ class _FlipStatCardState extends State<FlipStatCard>
       vsync: this,
     );
 
-    _flipAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _flipController,
-      curve: Curves.easeInOut,
-    ));
+    _flipAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _flipController, curve: Curves.easeInOut),
+    );
   }
 
   @override
@@ -111,23 +107,19 @@ class _FlipStatCardState extends State<FlipStatCard>
 
   Widget _buildFront() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: widget.iconColor.withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(
-              widget.icon,
-              color: widget.iconColor,
-              size: 24,
-            ),
+            child: Icon(widget.icon, color: widget.iconColor, size: 24),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           Text(
             widget.value,
             style: const TextStyle(
@@ -136,7 +128,7 @@ class _FlipStatCardState extends State<FlipStatCard>
               color: Color(0xFF1F2937),
             ),
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: 4),
           Text(
             widget.label,
             style: const TextStyle(
@@ -156,7 +148,7 @@ class _FlipStatCardState extends State<FlipStatCard>
       alignment: Alignment.center,
       transform: Matrix4.identity()..rotateY(math.pi),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(16),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -170,7 +162,7 @@ class _FlipStatCardState extends State<FlipStatCard>
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
             ],
             if (widget.detailContent != null) ...[
               Text(
@@ -202,7 +194,7 @@ class _FlipStatCardState extends State<FlipStatCard>
                       size: 20,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
                   const Text(
                     'Tap pour\nplus d\'infos',
                     style: TextStyle(

@@ -30,10 +30,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
   final List<Boat> _boats = Boat.getDemoBoats();
   String? _selectedBoatId;
   String _selectedFilter = "Aujourd'hui";
-  List<dynamic> _allHistory   = [];
-  List<dynamic> _historyData  = [];
-  bool _isLoading  = true;
-  bool _showMap    = false;
+  List<dynamic> _allHistory = [];
+  List<dynamic> _historyData = [];
+  bool _isLoading = true;
+  bool _showMap = false;
   Timer? _gpsTimer;
 
   static const String _realBoatId = '1'; // Hanchia1
@@ -44,10 +44,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
     super.initState();
     _selectedBoatId = _boats.first.id;
     _loadHistory();
-    _gpsTimer = Timer.periodic(
-      const Duration(seconds: 30),
-      (_) { if (_selectedBoatId == _realBoatId && mounted) _loadHistory(); },
-    );
+    _gpsTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (_selectedBoatId == _realBoatId && mounted) _loadHistory();
+    });
   }
 
   @override
@@ -64,13 +63,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
       data = await ApiService.getGpsHistory();
     } else {
       final boat = _boats.firstWhere(
-          (b) => b.id == _selectedBoatId, orElse: () => _boats.first);
+        (b) => b.id == _selectedBoatId,
+        orElse: () => _boats.first,
+      );
       data = _generateDemoHistory(boat);
     }
     setState(() {
-      _allHistory  = data;
+      _allHistory = data;
       _historyData = _applyFilter(data);
-      _isLoading   = false;
+      _isLoading = false;
     });
   }
 
@@ -92,7 +93,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final filtered = data.where((item) {
       try {
         return DateTime.parse(item['timestamp'].toString()).isAfter(cutoff);
-      } catch (_) { return true; }
+      } catch (_) {
+        return true;
+      }
     }).toList();
     // Si filtre trop strict → on retourne toutes les données avec avertissement
     return filtered;
@@ -106,9 +109,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
       final ts = now.subtract(Duration(hours: i * 3 + rng.nextInt(2)));
       return {
         'timestamp': ts.toIso8601String(),
-        'latitude':  boat.latitude  + (rng.nextDouble() - 0.5) * 0.03,
+        'latitude': boat.latitude + (rng.nextDouble() - 0.5) * 0.03,
         'longitude': boat.longitude + (rng.nextDouble() - 0.5) * 0.03,
-        'speed':     (rng.nextDouble() * 14 + 1).toStringAsFixed(1),
+        'speed': (rng.nextDouble() * 14 + 1).toStringAsFixed(1),
       };
     });
   }
@@ -118,23 +121,25 @@ class _HistoryScreenState extends State<HistoryScreen> {
     if (_historyData.length < 2) {
       return {
         'points': '${_historyData.length}',
-        'distance': '—', 'duration': '—', 'avgSpeed': '—',
+        'distance': '—',
+        'duration': '—',
+        'avgSpeed': '—',
       };
     }
     double totalKm = 0;
     for (int i = 1; i < _historyData.length; i++) {
       totalKm += _haversine(
-        (_historyData[i-1]['latitude']  as num).toDouble(),
-        (_historyData[i-1]['longitude'] as num).toDouble(),
-        (_historyData[i]['latitude']    as num).toDouble(),
-        (_historyData[i]['longitude']   as num).toDouble(),
+        (_historyData[i - 1]['latitude'] as num).toDouble(),
+        (_historyData[i - 1]['longitude'] as num).toDouble(),
+        (_historyData[i]['latitude'] as num).toDouble(),
+        (_historyData[i]['longitude'] as num).toDouble(),
       );
     }
     String duration = '—';
     try {
       final t1 = DateTime.parse(_historyData.last['timestamp'].toString());
       final t2 = DateTime.parse(_historyData.first['timestamp'].toString());
-      final d  = t2.difference(t1).abs();
+      final d = t2.difference(t1).abs();
       duration = d.inHours > 0
           ? '${d.inHours}h ${d.inMinutes % 60}min'
           : '${d.inMinutes} min';
@@ -142,9 +147,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final speeds = _historyData
         .map((e) => double.tryParse(e['speed']?.toString() ?? '0') ?? 0.0)
         .toList();
-    final avg = speeds.isEmpty ? 0.0 : speeds.reduce((a, b) => a + b) / speeds.length;
+    final avg = speeds.isEmpty
+        ? 0.0
+        : speeds.reduce((a, b) => a + b) / speeds.length;
     return {
-      'points':   '${_historyData.length}',
+      'points': '${_historyData.length}',
       'distance': '${totalKm.toStringAsFixed(1)} km',
       'duration': duration,
       'avgSpeed': '${avg.toStringAsFixed(1)} nœuds',
@@ -152,12 +159,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   double _haversine(double lat1, double lon1, double lat2, double lon2) {
-    const r   = 6371.0;
+    const r = 6371.0;
     final dLat = _deg2rad(lat2 - lat1);
     final dLon = _deg2rad(lon2 - lon1);
-    final a = math.sin(dLat / 2) * math.sin(dLat / 2)
-        + math.cos(_deg2rad(lat1)) * math.cos(_deg2rad(lat2))
-        * math.sin(dLon / 2) * math.sin(dLon / 2);
+    final a =
+        math.sin(dLat / 2) * math.sin(dLat / 2) +
+        math.cos(_deg2rad(lat1)) *
+            math.cos(_deg2rad(lat2)) *
+            math.sin(dLon / 2) *
+            math.sin(dLon / 2);
     return r * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
   }
 
@@ -172,8 +182,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
         title: 'Historique',
         actions: [
           IconButton(
-            icon: Icon(_showMap ? Icons.list_alt_rounded : Icons.map_rounded,
-                color: AppColors.white),
+            icon: Icon(
+              _showMap ? Icons.list_alt_rounded : Icons.map_rounded,
+              color: AppColors.white,
+            ),
             tooltip: _showMap ? 'Vue liste' : 'Vue carte',
             onPressed: () => setState(() => _showMap = !_showMap),
           ),
@@ -187,31 +199,29 @@ class _HistoryScreenState extends State<HistoryScreen> {
       child: _isLoading
           ? const MaritimeLoadingState(message: 'Chargement du trajet…')
           : _historyData.isEmpty
-              ? MaritimeEmptyState(
-                  icon: Icons.route,
-                  title: 'Aucun point sur cette période',
-                  subtitle: 'Essayez "Semaine" ou "Mois"\npour voir plus d\'historique.',
-                  action: TextButton.icon(
-                    onPressed: () {
-                      setState(() {
-                        _selectedFilter = 'Mois';
-                        _historyData = _applyFilter(_allHistory);
-                      });
-                    },
-                    icon: const Icon(Icons.date_range),
-                    label: const Text('Voir ce mois'),
-                  ),
-                )
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildSummaryCard(summary),
-                    if (_showMap)
-                      _buildMapView()
-                    else
-                      _buildListView(),
-                  ],
-                ),
+          ? MaritimeEmptyState(
+              icon: Icons.route,
+              title: 'Aucun point sur cette période',
+              subtitle:
+                  'Essayez "Semaine" ou "Mois"\npour voir plus d\'historique.',
+              action: TextButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _selectedFilter = 'Mois';
+                    _historyData = _applyFilter(_allHistory);
+                  });
+                },
+                icon: const Icon(Icons.date_range),
+                label: const Text('Voir ce mois'),
+              ),
+            )
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildSummaryCard(summary),
+                if (_showMap) _buildMapView() else _buildListView(),
+              ],
+            ),
     );
   }
 
@@ -219,14 +229,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Widget _buildFilters() {
     final isReal = _selectedBoatId == _realBoatId;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
-          AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, 0),
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.sm,
+        AppSpacing.lg,
+        0,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Dropdown bateau
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.95),
               borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -235,7 +249,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             child: DropdownButton<String>(
               value: _selectedBoatId,
               isExpanded: true,
-              underline: const SizedBox(),
+              underline: SizedBox(),
               dropdownColor: AppColors.white,
               icon: const Icon(Icons.arrow_drop_down, color: AppColors.primary),
               items: _boats.map((boat) {
@@ -244,27 +258,40 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   value: boat.id,
                   child: Row(
                     children: [
-                      Icon(Icons.directions_boat,
-                          color: real ? AppColors.success : AppColors.primary,
-                          size: 18),
-                      const SizedBox(width: AppSpacing.sm),
+                      Icon(
+                        Icons.directions_boat,
+                        color: real ? AppColors.success : AppColors.primary,
+                        size: 18,
+                      ),
+                      SizedBox(width: AppSpacing.sm),
                       Expanded(
-                        child: Text(boat.name,
-                            style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: real ? AppColors.success : AppColors.primary)),
+                        child: Text(
+                          boat.name,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: real ? AppColors.success : AppColors.primary,
+                          ),
+                        ),
                       ),
                       if (real)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.success.withOpacity(0.12),
                             borderRadius: BorderRadius.circular(6),
                           ),
-                          child: const Text('GPS LIVE',
-                              style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800,
-                                  color: AppColors.success)),
+                          child: const Text(
+                            'GPS LIVE',
+                            style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.success,
+                            ),
+                          ),
                         ),
                     ],
                   ),
@@ -276,21 +303,22 @@ class _HistoryScreenState extends State<HistoryScreen> {
               },
             ),
           ),
-          const SizedBox(height: AppSpacing.sm),
+          SizedBox(height: AppSpacing.sm),
           // Chips période
           Row(
-            children: _filters
-                .map((f) => _filterChip(f, _selectedFilter == f))
-                .expand((w) => [w, const SizedBox(width: AppSpacing.sm)])
-                .toList()
-              ..removeLast(),
+            children:
+                _filters
+                    .map((f) => _filterChip(f, _selectedFilter == f))
+                    .expand((w) => [w, SizedBox(width: AppSpacing.sm)])
+                    .toList()
+                  ..removeLast(),
           ),
           if (isReal) ...[
-            const SizedBox(height: AppSpacing.sm),
+            SizedBox(height: AppSpacing.sm),
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
                     color: AppColors.success.withOpacity(0.18),
                     borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -300,9 +328,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     children: [
                       Icon(Icons.gps_fixed, color: AppColors.success, size: 12),
                       SizedBox(width: 4),
-                      Text('GPS réel · refresh 30s',
-                          style: TextStyle(color: AppColors.success,
-                              fontSize: 10, fontWeight: FontWeight.w700)),
+                      Text(
+                        'GPS réel · refresh 30s',
+                        style: TextStyle(
+                          color: AppColors.success,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -319,25 +352,30 @@ class _HistoryScreenState extends State<HistoryScreen> {
       child: GestureDetector(
         onTap: () => setState(() {
           _selectedFilter = label;
-          _historyData    = _applyFilter(_allHistory);
+          _historyData = _applyFilter(_allHistory);
         }),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.symmetric(vertical: 9),
+          padding: EdgeInsets.symmetric(vertical: 9),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.white : Colors.white.withOpacity(0.55),
+            color: isSelected
+                ? AppColors.white
+                : Colors.white.withOpacity(0.55),
             borderRadius: BorderRadius.circular(AppRadius.md),
             border: Border.all(
               color: isSelected ? AppColors.primary : Colors.white54,
               width: isSelected ? 2 : 1,
             ),
           ),
-          child: Text(label,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
-                  color: isSelected ? AppColors.primary : AppColors.textPrimary)),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
+              color: isSelected ? AppColors.primary : AppColors.textPrimary,
+            ),
+          ),
         ),
       ),
     );
@@ -346,9 +384,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
   // ── Carte résumé ─────────────────────────────────────────────
   Widget _buildSummaryCard(Map<String, String> s) {
     return Container(
-      margin: const EdgeInsets.fromLTRB(
-          AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.sm),
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      margin: EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.lg,
+        AppSpacing.lg,
+        AppSpacing.sm,
+      ),
+      padding: EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [AppColors.primary, AppColors.primaryLight],
@@ -364,34 +406,47 @@ class _HistoryScreenState extends State<HistoryScreen> {
           Row(
             children: [
               const Icon(Icons.route, color: AppColors.white, size: 17),
-              const SizedBox(width: AppSpacing.sm),
-              const Text('Résumé du trajet',
-                  style: TextStyle(color: AppColors.white,
-                      fontWeight: FontWeight.w700, fontSize: 14)),
+              SizedBox(width: AppSpacing.sm),
+              const Text(
+                'Résumé du trajet',
+                style: TextStyle(
+                  color: AppColors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                ),
+              ),
               const Spacer(),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
-                child: Text(_selectedFilter,
-                    style: TextStyle(
-                        color: AppColors.white.withOpacity(0.9),
-                        fontSize: 11, fontWeight: FontWeight.w600)),
+                child: Text(
+                  _selectedFilter,
+                  style: TextStyle(
+                    color: AppColors.white.withOpacity(0.9),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.md),
+          SizedBox(height: AppSpacing.md),
           Row(
             children: [
-              _summaryItem(Icons.pin_drop_outlined,  s['points']!,   'Points GPS'),
+              _summaryItem(Icons.pin_drop_outlined, s['points']!, 'Points GPS'),
               _vDivider(),
-              _summaryItem(Icons.straighten,          s['distance']!, 'Distance'),
+              _summaryItem(Icons.straighten, s['distance']!, 'Distance'),
               _vDivider(),
-              _summaryItem(Icons.timer_outlined,      s['duration']!, 'Durée'),
+              _summaryItem(Icons.timer_outlined, s['duration']!, 'Durée'),
               _vDivider(),
-              _summaryItem(Icons.speed_outlined,      s['avgSpeed']!, 'Vitesse moy.'),
+              _summaryItem(
+                Icons.speed_outlined,
+                s['avgSpeed']!,
+                'Vitesse moy.',
+              ),
             ],
           ),
         ],
@@ -403,56 +458,83 @@ class _HistoryScreenState extends State<HistoryScreen> {
     child: Column(
       children: [
         Icon(icon, color: AppColors.white.withOpacity(0.8), size: 15),
-        const SizedBox(height: 3),
-        Text(value,
-            style: const TextStyle(color: AppColors.white,
-                fontWeight: FontWeight.w800, fontSize: 12),
-            textAlign: TextAlign.center),
-        Text(label,
-            style: TextStyle(color: AppColors.white.withOpacity(0.6), fontSize: 9),
-            textAlign: TextAlign.center),
+        SizedBox(height: 3),
+        Text(
+          value,
+          style: const TextStyle(
+            color: AppColors.white,
+            fontWeight: FontWeight.w800,
+            fontSize: 12,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        Text(
+          label,
+          style: TextStyle(
+            color: AppColors.white.withOpacity(0.6),
+            fontSize: 9,
+          ),
+          textAlign: TextAlign.center,
+        ),
       ],
     ),
   );
 
-  Widget _vDivider() => Container(
-    width: 1, height: 32, color: AppColors.white.withOpacity(0.25));
+  Widget _vDivider() =>
+      Container(width: 1, height: 32, color: AppColors.white.withOpacity(0.25));
 
   // ── Vue carte ────────────────────────────────────────────────
   Widget _buildMapView() {
-    final points = _historyData.map((e) => LatLng(
-      (e['latitude']  as num).toDouble(),
-      (e['longitude'] as num).toDouble(),
-    )).toList();
+    final points = _historyData
+        .map(
+          (e) => LatLng(
+            (e['latitude'] as num).toDouble(),
+            (e['longitude'] as num).toDouble(),
+          ),
+        )
+        .toList();
 
-    if (points.isEmpty) return const SizedBox();
+    if (points.isEmpty) return SizedBox();
 
-    final centerLat = points.map((p) => p.latitude).reduce((a,b)=>a+b) / points.length;
-    final centerLng = points.map((p) => p.longitude).reduce((a,b)=>a+b) / points.length;
+    final centerLat =
+        points.map((p) => p.latitude).reduce((a, b) => a + b) / points.length;
+    final centerLng =
+        points.map((p) => p.longitude).reduce((a, b) => a + b) / points.length;
 
     return Expanded(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-            AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.lg),
+        padding: EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          0,
+          AppSpacing.lg,
+          AppSpacing.lg,
+        ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(AppRadius.xl),
           child: FlutterMap(
-            options: MapOptions(initialCenter: LatLng(centerLat, centerLng),
-                initialZoom: 13),
+            options: MapOptions(
+              initialCenter: LatLng(centerLat, centerLng),
+              initialZoom: 13,
+            ),
             children: [
               TileLayer(
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'com.example.primaa',
               ),
-              PolylineLayer(polylines: [
-                Polyline(points: points,
-                    color: AppColors.primaryLight, strokeWidth: 3.5),
-              ]),
+              PolylineLayer(
+                polylines: [
+                  Polyline(
+                    points: points,
+                    color: AppColors.primaryLight,
+                    strokeWidth: 3.5,
+                  ),
+                ],
+              ),
               MarkerLayer(
                 markers: points.asMap().entries.map((e) {
                   final isFirst = e.key == 0;
-                  final isLast  = e.key == points.length - 1;
-                  final isPOI   = isFirst || isLast;
+                  final isLast = e.key == points.length - 1;
+                  final isPOI = isFirst || isLast;
                   return Marker(
                     width: isPOI ? 36 : 12,
                     height: isPOI ? 36 : 12,
@@ -460,20 +542,32 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     child: isPOI
                         ? Container(
                             decoration: BoxDecoration(
-                              color: isFirst ? AppColors.success : AppColors.error,
+                              color: isFirst
+                                  ? AppColors.success
+                                  : AppColors.error,
                               shape: BoxShape.circle,
-                              border: Border.all(color: AppColors.white, width: 2.5),
+                              border: Border.all(
+                                color: AppColors.white,
+                                width: 2.5,
+                              ),
                               boxShadow: AppShadows.card,
                             ),
                             child: Icon(
-                              isFirst ? Icons.play_arrow_rounded : Icons.flag_rounded,
-                              color: AppColors.white, size: 18),
+                              isFirst
+                                  ? Icons.play_arrow_rounded
+                                  : Icons.flag_rounded,
+                              color: AppColors.white,
+                              size: 18,
+                            ),
                           )
                         : Container(
                             decoration: BoxDecoration(
                               color: AppColors.primary.withOpacity(0.65),
                               shape: BoxShape.circle,
-                              border: Border.all(color: AppColors.white, width: 1.5),
+                              border: Border.all(
+                                color: AppColors.white,
+                                width: 1.5,
+                              ),
                             ),
                           ),
                   );
@@ -493,22 +587,32 @@ class _HistoryScreenState extends State<HistoryScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(
-                AppSpacing.xl, AppSpacing.sm, AppSpacing.xl, AppSpacing.sm),
+            padding: EdgeInsets.fromLTRB(
+              AppSpacing.xl,
+              AppSpacing.sm,
+              AppSpacing.xl,
+              AppSpacing.sm,
+            ),
             child: Row(
               children: [
-                Text('Points du trajet',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: AppColors.primary, fontWeight: FontWeight.w700)),
+                Text(
+                  'Points du trajet',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
                 const Spacer(),
-                MaritimeBadge(label: '${_historyData.length} pts',
-                    color: AppColors.primaryLight),
+                MaritimeBadge(
+                  label: '${_historyData.length} pts',
+                  color: AppColors.primaryLight,
+                ),
               ],
             ),
           ),
           Expanded(
             child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+              padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
               itemCount: _historyData.length,
               itemBuilder: (_, i) => _buildHistoryItem(_historyData[i], i),
             ),
@@ -520,24 +624,24 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   // ── Item timeline ────────────────────────────────────────────
   Widget _buildHistoryItem(Map<String, dynamic> item, int index) {
-    final ts    = item['timestamp'].toString();
-    final time  = ts.length >= 16 ? ts.substring(11, 16) : '';
-    final date  = ts.length >= 10 ? ts.substring(0, 10) : ts;
-    final lat   = (item['latitude']  as num).toDouble();
-    final lng   = (item['longitude'] as num).toDouble();
+    final ts = item['timestamp'].toString();
+    final time = ts.length >= 16 ? ts.substring(11, 16) : '';
+    final date = ts.length >= 10 ? ts.substring(0, 10) : ts;
+    final lat = (item['latitude'] as num).toDouble();
+    final lng = (item['longitude'] as num).toDouble();
     final speed = double.tryParse(item['speed']?.toString() ?? '0') ?? 0.0;
     final isFirst = index == 0;
-    final isLast  = index == _historyData.length - 1;
+    final isLast = index == _historyData.length - 1;
 
     // Couleur du point selon la position dans le trajet
     final dotColor = isFirst
         ? AppColors.success
         : isLast
-            ? AppColors.error
-            : AppColors.primary;
+        ? AppColors.error
+        : AppColors.primary;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      padding: EdgeInsets.only(bottom: AppSpacing.sm),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -546,7 +650,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             width: 24,
             child: Column(
               children: [
-                const SizedBox(height: 4),
+                SizedBox(height: 4),
                 Container(
                   width: 14,
                   height: 14,
@@ -555,14 +659,19 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     color: dotColor,
                     border: Border.all(color: AppColors.white, width: 2),
                     boxShadow: [
-                      BoxShadow(color: dotColor.withOpacity(0.4),
-                          blurRadius: 4, offset: const Offset(0, 2)),
+                      BoxShadow(
+                        color: dotColor.withOpacity(0.4),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
                     ],
                   ),
                   child: isFirst || isLast
                       ? Icon(
                           isFirst ? Icons.play_arrow : Icons.flag,
-                          size: 7, color: AppColors.white)
+                          size: 7,
+                          color: AppColors.white,
+                        )
                       : null,
                 ),
                 if (!isLast)
@@ -580,12 +689,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
               ],
             ),
           ),
-          const SizedBox(width: AppSpacing.md),
+          SizedBox(width: AppSpacing.md),
           // ── Carte point ───────────────────────
           Expanded(
             child: Container(
-              margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-              padding: const EdgeInsets.all(AppSpacing.md),
+              margin: EdgeInsets.only(bottom: AppSpacing.sm),
+              padding: EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
                 color: AppColors.white,
                 borderRadius: BorderRadius.circular(AppRadius.md),
@@ -593,8 +702,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   color: isFirst
                       ? AppColors.success.withOpacity(0.3)
                       : isLast
-                          ? AppColors.error.withOpacity(0.3)
-                          : AppColors.border,
+                      ? AppColors.error.withOpacity(0.3)
+                      : AppColors.border,
                 ),
                 boxShadow: AppShadows.subtle,
               ),
@@ -604,41 +713,61 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   // Ligne 1 : heure + badge
                   Row(
                     children: [
-                      Text(time,
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(color: AppColors.primary,
-                                  fontWeight: FontWeight.w700)),
-                      const SizedBox(width: AppSpacing.sm),
+                      Text(
+                        time,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      SizedBox(width: AppSpacing.sm),
                       if (isFirst)
-                        MaritimeBadge(label: 'DÉPART',
-                            color: AppColors.success, icon: Icons.play_arrow),
+                        MaritimeBadge(
+                          label: 'DÉPART',
+                          color: AppColors.success,
+                          icon: Icons.play_arrow,
+                        ),
                       if (isLast && !isFirst)
-                        MaritimeBadge(label: 'ARRIVÉE',
-                            color: AppColors.error, icon: Icons.flag),
+                        MaritimeBadge(
+                          label: 'ARRIVÉE',
+                          color: AppColors.error,
+                          icon: Icons.flag,
+                        ),
                       if (!isFirst && !isLast)
-                        MaritimeBadge(label: 'En mer',
-                            color: AppColors.primaryLight, filled: false),
+                        MaritimeBadge(
+                          label: 'En mer',
+                          color: AppColors.primaryLight,
+                          filled: false,
+                        ),
                       const Spacer(),
-                      Text(date,
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: AppColors.textSecondary,
-                                  fontSize: 10)),
+                      Text(
+                        date,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.textSecondary,
+                          fontSize: 10,
+                        ),
+                      ),
                     ],
                   ),
-                  const SizedBox(height: AppSpacing.sm),
+                  SizedBox(height: AppSpacing.sm),
                   // Ligne 2 : coordonnées
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.sm, vertical: 4),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: AppSpacing.sm,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.lightGrey,
                       borderRadius: BorderRadius.circular(AppRadius.sm),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.location_on,
-                            size: 13, color: AppColors.primaryLight),
-                        const SizedBox(width: 4),
+                        const Icon(
+                          Icons.location_on,
+                          size: 13,
+                          color: AppColors.primaryLight,
+                        ),
+                        SizedBox(width: 4),
                         Text(
                           '${lat.toStringAsFixed(5)},  ${lng.toStringAsFixed(5)}',
                           style: const TextStyle(
@@ -652,28 +781,36 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.sm),
+                  SizedBox(height: AppSpacing.sm),
                   // Ligne 3 : vitesse
                   Row(
                     children: [
-                      Icon(Icons.speed,
-                          size: 13,
+                      Icon(
+                        Icons.speed,
+                        size: 13,
+                        color: speed > 8
+                            ? AppColors.warning
+                            : AppColors.textSecondary,
+                      ),
+                      SizedBox(width: 4),
+                      Text(
+                        '${speed.toStringAsFixed(1)} nœuds',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
                           color: speed > 8
                               ? AppColors.warning
-                              : AppColors.textSecondary),
-                      const SizedBox(width: 4),
-                      Text('${speed.toStringAsFixed(1)} nœuds',
-                          style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: speed > 8
-                                  ? AppColors.warning
-                                  : AppColors.textSecondary)),
-                      const SizedBox(width: AppSpacing.md),
-                      Text('Point #${index + 1}',
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: AppColors.textSecondary,
-                                  fontSize: 10)),
+                              : AppColors.textSecondary,
+                        ),
+                      ),
+                      SizedBox(width: AppSpacing.md),
+                      Text(
+                        'Point #${index + 1}',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.textSecondary,
+                          fontSize: 10,
+                        ),
+                      ),
                     ],
                   ),
                 ],

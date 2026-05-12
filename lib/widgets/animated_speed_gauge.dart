@@ -32,13 +32,16 @@ class _AnimatedSpeedGaugeState extends State<AnimatedSpeedGauge>
       vsync: this,
     );
 
-    _animation = Tween<double>(
-      begin: 0.0,
-      end: widget.speed.clamp(0.0, widget.maxSpeed),
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOutCubic,
-    ));
+    _animation =
+        Tween<double>(
+          begin: 0.0,
+          end: widget.speed.clamp(0.0, widget.maxSpeed),
+        ).animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
 
     _animationController.forward();
   }
@@ -47,13 +50,16 @@ class _AnimatedSpeedGaugeState extends State<AnimatedSpeedGauge>
   void didUpdateWidget(AnimatedSpeedGauge oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.speed != widget.speed) {
-      _animation = Tween<double>(
-        begin: _animation.value,
-        end: widget.speed.clamp(0.0, widget.maxSpeed),
-      ).animate(CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeOutCubic,
-      ));
+      _animation =
+          Tween<double>(
+            begin: _animation.value,
+            end: widget.speed.clamp(0.0, widget.maxSpeed),
+          ).animate(
+            CurvedAnimation(
+              parent: _animationController,
+              curve: Curves.easeOutCubic,
+            ),
+          );
       _animationController.forward(from: 0.0);
     }
   }
@@ -86,7 +92,7 @@ class _AnimatedSpeedGaugeState extends State<AnimatedSpeedGauge>
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: EdgeInsets.all(20.0),
         child: Stack(
           children: [
             // Background arc
@@ -126,7 +132,7 @@ class _AnimatedSpeedGaugeState extends State<AnimatedSpeedGauge>
                       );
                     },
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4),
                   Text(
                     widget.unit,
                     style: const TextStyle(
@@ -151,7 +157,7 @@ class _BackgroundGaugePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height * 0.8);
     final radius = size.width * 0.4;
-    
+
     final backgroundPaint = Paint()
       ..color = const Color(0xFF1E3A8A)
       ..strokeWidth = 8
@@ -177,20 +183,16 @@ class _BackgroundGaugePainter extends CustomPainter {
       final angle = math.pi + (math.pi * i / 10);
       final startAngle = angle - 0.05;
       final endAngle = angle + 0.05;
-      
+
       final innerRadius = radius - 12;
       final outerRadius = radius - 4;
-      
+
       final x1 = center.dx + innerRadius * math.cos(startAngle);
       final y1 = center.dy + innerRadius * math.sin(startAngle);
       final x2 = center.dx + outerRadius * math.cos(startAngle);
       final y2 = center.dy + outerRadius * math.sin(startAngle);
-      
-      canvas.drawLine(
-        Offset(x1, y1),
-        Offset(x2, y2),
-        tickPaint,
-      );
+
+      canvas.drawLine(Offset(x1, y1), Offset(x2, y2), tickPaint);
     }
   }
 
@@ -202,16 +204,13 @@ class _SpeedGaugePainter extends CustomPainter {
   final double speed;
   final double maxSpeed;
 
-  _SpeedGaugePainter({
-    required this.speed,
-    required this.maxSpeed,
-  });
+  _SpeedGaugePainter({required this.speed, required this.maxSpeed});
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height * 0.8);
     final radius = size.width * 0.4;
-    
+
     final speedPaint = Paint()
       ..color = const Color(0xFF0EA5E9)
       ..strokeWidth = 8
@@ -244,11 +243,7 @@ class _SpeedGaugePainter extends CustomPainter {
     final needleY = center.dy + needleLength * math.sin(needleAngle);
 
     // Draw needle
-    canvas.drawLine(
-      center,
-      Offset(needleX, needleY),
-      needlePaint,
-    );
+    canvas.drawLine(center, Offset(needleX, needleY), needlePaint);
 
     // Draw center dot
     final centerDotPaint = Paint()
@@ -260,7 +255,6 @@ class _SpeedGaugePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return oldDelegate is! _SpeedGaugePainter || 
-           oldDelegate.speed != speed;
+    return oldDelegate is! _SpeedGaugePainter || oldDelegate.speed != speed;
   }
 }
