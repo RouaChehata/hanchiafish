@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:primaa/loginScreen.dart';
-import 'app theme.dart';
+import 'app_theme.dart';
 
 // ════════════════════════════════════════════════════════════════
 //  NOTIFIERS GLOBAUX — à importer dans main.dart

@@ -12,7 +12,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:primaa/models/boat_model.dart';
-import 'package:primaa/screens/app theme.dart'; // ← Design System partagé
+import 'package:primaa/screens/app_theme.dart'; // ← Design System partagé
 import '../services/pdf_service.dart';
 import '../widgets/animated_speed_gauge.dart';
 import '../widgets/wave_background_card.dart';

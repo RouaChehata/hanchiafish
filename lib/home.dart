@@ -13,7 +13,7 @@ import 'package:primaa/screens/notifications_screen.dart';
 import 'package:primaa/add_boat_dialog.dart';
 import 'package:primaa/screens/statistics_screen.dart';
 import 'package:primaa/screens/captures_screen.dart';
-import 'package:primaa/screens/app theme.dart'; // ← Design System partagé
+import 'package:primaa/screens/app_theme.dart'; // ← Design System partagé
 import 'package:shared_preferences/shared_preferences.dart'; // ✅ Persistance
 import 'package:primaa/api_service.dart'; // ✅ GPS Hanchia1
 import 'dart:convert';

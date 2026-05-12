@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/boat_model.dart';
 import '../../services/groq_service.dart';
-import '../screens/app theme.dart';
+import '../screens/app_theme.dart';
 
 class RapportScreen extends StatefulWidget {
   final Boat? selectedBoat;

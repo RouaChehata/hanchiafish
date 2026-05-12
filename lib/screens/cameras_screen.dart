@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../models/boat_model.dart';
 import 'package:primaa/api_service.dart';
-import 'app theme.dart';
+import 'app_theme.dart';
 
 class CamerasScreen extends StatefulWidget {
   const CamerasScreen({super.key});

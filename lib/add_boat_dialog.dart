@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:primaa/models/boat_model.dart';
-import 'package:primaa/screens/app theme.dart';
+import 'package:primaa/screens/app_theme.dart';
 
 class AddBoatDialog extends StatefulWidget {
   final Function(Boat) onAddBoat;

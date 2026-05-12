@@ -4,7 +4,7 @@ import 'package:latlong2/latlong.dart';
 import '../models/boat_model.dart';
 import 'dart:async';
 import 'package:primaa/api_service.dart';
-import 'app theme.dart';
+import 'app_theme.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});

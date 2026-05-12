@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:primaa/api_service.dart';
-import 'app theme.dart';
+import 'app_theme.dart';
 
 class CapturesScreen extends StatefulWidget {
   const CapturesScreen({super.key});

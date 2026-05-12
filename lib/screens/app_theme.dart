@@ -1,11 +1,9 @@
-// ════════════════════════════════════════════════════════════════
 //  app_theme.dart — Design System Maritime Partagé
 //  Importez ce fichier dans TOUS vos écrans.
 //  Ne définissez plus jamais AppColors, AppTextStyles, etc. ailleurs.
 // ════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
-export 'App theme.dart';
 
 // ─────────────────────────────────────────────
 //  COULEURS CENTRALES (miroir de MaritimeColors dans main.dart)
