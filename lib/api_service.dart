@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  static const String baseUrl = 'http://192.168.137.1:5000';
+  static const String baseUrl = 'https://hanchiafish-production.up.railway.app';
 
   // Ba3eth GPS position
   static Future<void> sendGps(double latitude, double longitude) async {
