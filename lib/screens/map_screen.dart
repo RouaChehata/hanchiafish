@@ -347,6 +347,7 @@ class _MapScreenState extends State<MapScreen> {
 
   Widget _buildBoatInfoCard(Boat boat) {
     final statusColor = _statusColor(boat.status);
+    final isReal = boat.id == '1';
     return Container(
       padding: EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
@@ -393,9 +394,9 @@ class _MapScreenState extends State<MapScreen> {
                               ?.copyWith(color: AppColors.primary),
                         ),
                         if (isReal) ...[
-                          SizedBox(width: 6),
+                          const SizedBox(width: 6),
                           Container(
-                            padding: EdgeInsets.symmetric(
+                            padding: const EdgeInsets.symmetric(
                               horizontal: 6,
                               vertical: 2,
                             ),
@@ -415,7 +416,7 @@ class _MapScreenState extends State<MapScreen> {
                         ],
                       ],
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     MaritimeBadge(
                       label: boat.status,
                       color: statusColor,
@@ -463,7 +464,7 @@ class _MapScreenState extends State<MapScreen> {
                 size: 14,
                 color: AppColors.textSecondary,
               ),
-              SizedBox(width: 4),
+              const SizedBox(width: 4),
               Text(
                 isReal
                     ? 'Lat: ${_realPosition.latitude.toStringAsFixed(5)}, Lng: ${_realPosition.longitude.toStringAsFixed(5)}'
@@ -491,6 +492,46 @@ class _MapScreenState extends State<MapScreen> {
             fontSize: 12,
             color: AppColors.textPrimary,
             fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _StatHeaderTile extends StatelessWidget {
+  final String label;
+  final String value;
+  final IconData icon;
+
+  const _StatHeaderTile({
+    required this.label,
+    required this.value,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, color: AppColors.white.withOpacity(0.9), size: 22),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: const TextStyle(
+            color: AppColors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        Text(
+          label.toUpperCase(),
+          style: TextStyle(
+            color: AppColors.white.withOpacity(0.7),
+            fontSize: 9,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 0.5,
           ),
         ),
       ],

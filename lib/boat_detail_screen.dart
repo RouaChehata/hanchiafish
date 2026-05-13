@@ -627,10 +627,37 @@ class _BoatDetailScreenState extends State<BoatDetailScreen>
                   ],
                 ),
                 const Spacer(),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.15),
+                    shape: BoxShape.circle,
                   ),
+                  child: const Icon(Icons.speed_rounded, color: AppColors.white, size: 28),
                 ),
               ],
             ),
+          ),
+          const SizedBox(height: 16),
+          // Coordinates Row
+          Row(
+            children: [
+              Expanded(
+                child: _premiumCoordCard(
+                  'LATITUDE',
+                  _currentPosition.latitude.toStringAsFixed(6),
+                  Icons.north_rounded,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _premiumCoordCard(
+                  'LONGITUDE',
+                  _currentPosition.longitude.toStringAsFixed(6),
+                  Icons.east_rounded,
+                ),
+              ),
+            ],
           ),
         ],
       ),

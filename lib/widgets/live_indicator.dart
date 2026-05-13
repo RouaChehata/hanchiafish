@@ -4,12 +4,14 @@ class LiveIndicator extends StatefulWidget {
   final String? text;
   final double? size;
   final TextStyle? textStyle;
+  final bool showText;
 
   const LiveIndicator({
     super.key,
     this.text = 'Temps réel',
     this.size,
     this.textStyle,
+    this.showText = true,
   });
 
   @override
@@ -90,19 +92,20 @@ class _LiveIndicatorState extends State<LiveIndicator>
             );
           },
         ),
-        SizedBox(width: 8),
-        // Text
-        Text(
-          widget.text!,
-          style:
-              widget.textStyle ??
-              const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF10B981),
-                letterSpacing: 0.5,
-              ),
-        ),
+        if (widget.showText) ...[
+          const SizedBox(width: 8),
+          Text(
+            widget.text ?? '',
+            style:
+                widget.textStyle ??
+                const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF10B981),
+                  letterSpacing: 0.5,
+                ),
+          ),
+        ],
       ],
     );
   }

@@ -458,27 +458,3 @@ class _AddBoatDialogState extends State<AddBoatDialog> {
     }
   }
 }
-
-  void _next() {
-    if (_formKey.currentState!.validate()) setState(() => _step++);
-  }
-
-  void _submit() {
-    if (_formKey.currentState!.validate()) {
-      final boat = Boat(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        name: _nameCtrl.text.trim(),
-        status: _selectedStatus,
-        latitude: double.parse(_latCtrl.text),
-        longitude: double.parse(_lngCtrl.text),
-        speed: double.parse(_speedCtrl.text),
-        lastUpdate: "Ajouté à l'instant",
-        imageUrl: 'images/téléchargement.png',
-        cameraActive: _cameraActive,
-        crewMembers: int.parse(_crewCtrl.text),
-      );
-      widget.onAddBoat(boat);
-      Navigator.of(context).pop();
-    }
-  }
-}
