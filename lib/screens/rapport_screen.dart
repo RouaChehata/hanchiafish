@@ -43,33 +43,69 @@ class _RapportScreenState extends State<RapportScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return MaritimeScaffold(
       appBar: const MaritimeAppBar(title: 'Rapport IA'),
-      backgroundColor: AppColors.background,
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // ── Bannière ─────────────────────────
-            MaritimeGradientHeader(
-              title: 'Rapport IA',
-              subtitle: 'Génération automatique via IA',
-              trailing: Container(
-                padding: EdgeInsets.all(AppSpacing.md),
+      headerContent: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.sm,
+        ),
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+            vertical: AppSpacing.md,
+          ),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            border: Border.all(color: Colors.white.withOpacity(0.2)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(AppSpacing.sm),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(AppRadius.md),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
                 child: const Icon(
                   Icons.auto_awesome,
                   color: AppColors.white,
-                  size: 26,
+                  size: 20,
                 ),
               ),
-            ),
-            SizedBox(height: AppSpacing.xl),
-
+              SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Intelligence Artificielle',
+                      style: TextStyle(
+                        color: AppColors.white,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                      ),
+                    ),
+                    Text(
+                      'Génération automatique de rapports',
+                      style: TextStyle(
+                        color: AppColors.white.withOpacity(0.75),
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      child: SingleChildScrollView(
+        padding: EdgeInsets.all(AppSpacing.lg),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
             // ── Info bateau ───────────────────────
             if (_selectedBoat != null) ...[
               MaritimeInfoRow(

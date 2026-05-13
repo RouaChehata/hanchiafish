@@ -47,7 +47,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return MaritimeScaffold(
       appBar: MaritimeAppBar(
         title: 'Statistiques',
         actions: [
@@ -57,8 +57,36 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           ),
         ],
       ),
-      backgroundColor: AppColors.background,
-      body: _isLoading
+      headerContent: Padding(
+        padding: EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          AppSpacing.sm,
+          AppSpacing.lg,
+          0,
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: _StatHeaderTile(
+                icon: Icons.location_on,
+                value: '$_totalPositions',
+                label: 'Positions GPS',
+                color: AppColors.primaryLight,
+              ),
+            ),
+            SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: _StatHeaderTile(
+                icon: Icons.notifications_active,
+                value: '$_totalAlertes',
+                label: 'Alertes totales',
+                color: AppColors.error,
+              ),
+            ),
+          ],
+        ),
+      ),
+      child: _isLoading
           ? const MaritimeLoadingState(message: 'Chargement des statistiques…')
           : SingleChildScrollView(
               padding: EdgeInsets.all(AppSpacing.lg),
@@ -185,6 +213,53 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                 ],
               ),
             ),
+    );
+  }
+}
+
+// ── Tuile stat header ────────────────────────────────────────
+class _StatHeaderTile extends StatelessWidget {
+  final IconData icon;
+  final String value;
+  final String label;
+  final Color color;
+
+  const _StatHeaderTile({
+    required this.icon,
+    required this.value,
+    required this.label,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.9),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        boxShadow: AppShadows.subtle,
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 26),
+          SizedBox(height: AppSpacing.sm),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              color: color,
+            ),
+          ),
+          Text(
+            label,
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
+          ),
+        ],
+      ),
     );
   }
 }

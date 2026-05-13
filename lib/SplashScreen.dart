@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:primaa/loginScreen.dart';
+import 'package:primaa/screens/app_theme.dart';
 
 class Splashscreen extends StatefulWidget {
   const Splashscreen({super.key});
@@ -162,11 +163,11 @@ class _SplashscreenState extends State<Splashscreen>
           return Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: const [
-                  Color(0xFF0D47A1), // Deep ocean blue at top
-                  Color(0xFF1565C0), // Deep blue
-                  Color(0xFF1E88E5), // Medium blue
-                  Color(0xFF42A5F5), // Light blue at bottom
+                colors: [
+                  AppColors.primary,
+                  AppColors.primaryLight,
+                  AppColors.accent,
+                  AppColors.accent.withOpacity(0.8),
                 ],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,

@@ -79,16 +79,16 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return MaritimeScaffold(
       appBar: MaritimeAppBar(
-        title: 'Carte des Bateaux',
+        title: 'Cartographie Flotte',
         actions: [
           IconButton(
-            icon: const Icon(Icons.my_location, color: AppColors.white),
+            icon: const Icon(Icons.my_location_rounded, color: AppColors.white),
             onPressed: _loadGps,
           ),
           IconButton(
-            icon: const Icon(Icons.location_city, color: AppColors.white),
+            icon: const Icon(Icons.hub_rounded, color: AppColors.white),
             onPressed: () => _mapController.move(
               const LatLng(35.661970525816834, 10.958101377208251),
               14,
@@ -96,138 +96,82 @@ class _MapScreenState extends State<MapScreen> {
           ),
         ],
       ),
-      body: Stack(
+      headerContent: _buildMapStatsHeader(),
+      child: Stack(
         children: [
-          FlutterMap(
-            mapController: _mapController,
-            options: MapOptions(
-              initialCenter: _realPosition,
-              initialZoom: 10,
-              interactionOptions: const InteractionOptions(
-                flags: InteractiveFlag.all,
-              ),
-              onTap: (_, __) => setState(() => _selectedBoat = null),
+          ClipRRect(
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(AppRadius.xxl),
+              topRight: Radius.circular(AppRadius.xxl),
             ),
-            children: [
-              TileLayer(
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'com.example.primaa',
+            child: FlutterMap(
+              mapController: _mapController,
+              options: MapOptions(
+                initialCenter: _realPosition,
+                initialZoom: 10,
+                interactionOptions: const InteractionOptions(
+                  flags: InteractiveFlag.all,
+                ),
+                onTap: (_, __) => setState(() => _selectedBoat = null),
               ),
-              // Zone geofencing port Teboulba
-              CircleLayer(
-                circles: [
-                  CircleMarker(
-                    point: const LatLng(35.661970525816834, 10.958101377208251),
-                    radius: 500,
-                    useRadiusInMeter: true,
-                    color: AppColors.primaryLight.withOpacity(0.15),
-                    borderColor: AppColors.primaryLight,
-                    borderStrokeWidth: 2,
-                  ),
-                ],
-              ),
-              // Markers kol bateaux
-              MarkerLayer(
-                markers: _boats.map((boat) {
-                  final isReal = boat.id == '1';
-                  final color = _statusColor(boat.status);
-                  final point = isReal
-                      ? _realPosition
-                      : LatLng(boat.latitude, boat.longitude);
-                  return Marker(
-                    width: 64,
-                    height: 64,
-                    point: point,
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() => _selectedBoat = boat);
-                        _mapController.move(point, 13);
-                      },
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Container(
-                            decoration: BoxDecoration(
-                              color: AppColors.white,
-                              shape: BoxShape.circle,
-                              boxShadow: AppShadows.elevated,
-                              border: Border.all(color: color, width: 3),
-                            ),
-                            child: Icon(
-                              Icons.directions_boat_filled,
-                              color: color,
-                              size: 28,
-                            ),
-                          ),
-                          // Badge GPS réel lel HanchiaFish-001
-                          if (isReal)
-                            Positioned(
-                              top: 0,
-                              right: 0,
-                              child: Container(
-                                width: 14,
-                                height: 14,
-                                decoration: BoxDecoration(
-                                  color: AppColors.success,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: Colors.white,
-                                    width: 2,
-                                  ),
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
+              children: [
+                TileLayer(
+                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  userAgentPackageName: 'com.example.primaa',
+                ),
+                CircleLayer(
+                  circles: [
+                    CircleMarker(
+                      point: const LatLng(35.661970525816834, 10.958101377208251),
+                      radius: 800,
+                      useRadiusInMeter: true,
+                      color: AppColors.primaryLight.withOpacity(0.12),
+                      borderColor: AppColors.primaryLight.withOpacity(0.5),
+                      borderStrokeWidth: 2,
                     ),
-                  );
-                }).toList(),
-              ),
-            ],
+                  ],
+                ),
+                MarkerLayer(
+                  markers: _boats.map((boat) {
+                    final isReal = boat.id == '1';
+                    final color = _statusColor(boat.status);
+                    final point = isReal
+                        ? _realPosition
+                        : LatLng(boat.latitude, boat.longitude);
+                    return Marker(
+                      width: 70,
+                      height: 70,
+                      point: point,
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() => _selectedBoat = boat);
+                          _mapController.move(point, 13);
+                        },
+                        child: _buildBoatMarker(boat, color, isReal),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
           ),
 
-          // Liste bateaux haut
+          // Liste bateaux flottante
           Positioned(
-            top: 10,
+            top: AppSpacing.lg,
             left: AppSpacing.lg,
             right: AppSpacing.lg,
-            child: _buildBoatsList(),
+            child: _buildFloatingBoatsList(),
           ),
 
-          // Badge vitesse GPS
+          // Vitesse GPS flottante
           Positioned(
-            bottom: _selectedBoat != null ? 200 : AppSpacing.xl,
-            left: AppSpacing.lg,
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                gradient: AppGradients.primaryBar,
-                borderRadius: BorderRadius.circular(AppRadius.lg),
-                boxShadow: AppShadows.elevated,
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.speed_rounded,
-                    color: AppColors.white,
-                    size: 18,
-                  ),
-                  SizedBox(width: AppSpacing.sm),
-                  Text(
-                    '${_currentSpeed.toStringAsFixed(1)} km/h',
-                    style: const TextStyle(
-                      color: AppColors.white,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            bottom: _selectedBoat != null ? 220 : AppSpacing.xl,
+            right: AppSpacing.lg,
+            child: _buildSpeedBadge(),
           ),
 
-          // Info card bateau sélectionné
+          // Card info sélection
           if (_selectedBoat != null)
             Positioned(
               bottom: AppSpacing.xl,
@@ -240,116 +184,178 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
-  Widget _buildBoatsList() {
-    return Container(
-      height: 100,
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        boxShadow: AppShadows.elevated,
-      ),
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.sm,
+  Widget _buildMapStatsHeader() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        _StatHeaderTile(
+          label: 'Unités',
+          value: '${_boats.length}',
+          icon: Icons.directions_boat_rounded,
         ),
-        itemCount: _boats.length,
-        itemBuilder: (_, i) {
-          final boat = _boats[i];
-          final isSelected = _selectedBoat?.id == boat.id;
-          final isReal = boat.id == '1';
-          final color = _statusColor(boat.status);
-          return GestureDetector(
-            onTap: () {
-              setState(() => _selectedBoat = boat);
-              _mapController.move(LatLng(boat.latitude, boat.longitude), 13);
-            },
+        _StatHeaderTile(
+          label: 'En Mer',
+          value: '${_boats.where((b) => b.status == 'En mer').length}',
+          icon: Icons.waves_rounded,
+        ),
+        _StatHeaderTile(
+          label: 'Vitesse Moy.',
+          value: '12.4 kn',
+          icon: Icons.speed_rounded,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBoatMarker(Boat boat, Color color, bool isReal) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            shape: BoxShape.circle,
+            boxShadow: AppShadows.premium,
+            border: Border.all(color: color, width: 3),
+          ),
+          child: Icon(
+            Icons.sailing_rounded,
+            color: color,
+            size: 24,
+          ),
+        ),
+        if (isReal)
+          Positioned(
+            top: 6,
+            right: 6,
             child: Container(
-              width: 120,
-              margin: EdgeInsets.only(right: AppSpacing.sm),
-              padding: EdgeInsets.all(AppSpacing.sm),
+              width: 14,
+              height: 14,
               decoration: BoxDecoration(
-                color: isSelected
-                    ? AppColors.primary.withOpacity(0.1)
-                    : AppColors.background,
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                border: Border.all(
-                  color: isSelected ? AppColors.primary : AppColors.border,
-                  width: isSelected ? 2 : 1,
-                ),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Stack(
-                    children: [
-                      Icon(
-                        Icons.directions_boat,
-                        color: isSelected ? AppColors.primary : color,
-                        size: 22,
-                      ),
-                      if (isReal)
-                        Positioned(
-                          top: 0,
-                          right: 0,
-                          child: Container(
-                            width: 8,
-                            height: 8,
-                            decoration: const BoxDecoration(
-                              color: AppColors.success,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    boat.name,
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: isSelected
-                          ? AppColors.primary
-                          : AppColors.textPrimary,
-                    ),
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  // Status colored
-                  Text(
-                    boat.status,
-                    style: TextStyle(
-                      fontSize: 9,
-                      color: color,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+                color: AppColors.success,
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.white, width: 2),
+                boxShadow: AppShadows.subtle,
               ),
             ),
-          );
-        },
+          ),
+      ],
+    );
+  }
+
+  Widget _buildFloatingBoatsList() {
+    return Container(
+      height: 90,
+      decoration: BoxDecoration(
+        color: AppColors.white.withOpacity(0.9),
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        boxShadow: AppShadows.elevated,
+        border: Border.all(color: AppColors.white.withOpacity(0.5)),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          padding: EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+          itemCount: _boats.length,
+          itemBuilder: (_, i) {
+            final boat = _boats[i];
+            final isSelected = _selectedBoat?.id == boat.id;
+            return GestureDetector(
+              onTap: () {
+                setState(() => _selectedBoat = boat);
+                _mapController.move(LatLng(boat.latitude, boat.longitude), 13);
+              },
+              child: AnimatedContainer(
+                duration: AppDurations.normal,
+                width: 110,
+                margin: EdgeInsets.only(right: AppSpacing.sm),
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: isSelected ? AppColors.primary : AppColors.white.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
+                  border: Border.all(
+                    color: isSelected ? AppColors.primary : AppColors.borderLight,
+                    width: 1.5,
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.directions_boat_rounded,
+                      color: isSelected ? AppColors.white : AppColors.primary,
+                      size: 20,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      boat.name,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                        color: isSelected ? AppColors.white : AppColors.primary,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSpeedBadge() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        gradient: AppGradients.primaryBar,
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        boxShadow: AppShadows.premium,
+        border: Border.all(color: AppColors.white.withOpacity(0.2)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.speed_rounded, color: AppColors.white, size: 24),
+          const SizedBox(height: 4),
+          Text(
+            '${_currentSpeed.toStringAsFixed(1)}',
+            style: const TextStyle(
+              color: AppColors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const Text(
+            'KM/H',
+            style: TextStyle(
+              color: Colors.white70,
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1,
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildBoatInfoCard(Boat boat) {
     final statusColor = _statusColor(boat.status);
-    final isReal = boat.id == '1';
     return Container(
       padding: EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppRadius.xl),
-        boxShadow: AppShadows.elevated,
+        borderRadius: BorderRadius.circular(AppRadius.xxl),
+        boxShadow: AppShadows.premium,
+        border: Border.all(color: statusColor.withOpacity(0.3), width: 1.5),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
           Row(
@@ -358,11 +364,11 @@ class _MapScreenState extends State<MapScreen> {
                 width: 50,
                 height: 50,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                  color: AppColors.lightGrey,
+                  color: AppColors.primary.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(AppRadius.md),
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
                   child: Image.asset(
                     boat.imageUrl,
                     fit: BoxFit.cover,

@@ -335,45 +335,81 @@ class _HomeState extends State<Home> {
   // ── Dashboard ───────────────────────────────────────────────
   Widget _buildDashboard(Map<String, dynamic> stats) {
     return Padding(
-      padding: EdgeInsets.all(AppSpacing.xl),
+      padding: EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Vue d\'ensemble',
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              color: AppColors.white,
-              fontWeight: FontWeight.w700,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Tableau de bord',
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      color: AppColors.white,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  Text(
+                    'Surveillance en temps réel',
+                    style: TextStyle(
+                      color: AppColors.white.withOpacity(0.6),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: EdgeInsets.all(AppSpacing.md),
+                decoration: BoxDecoration(
+                  color: AppColors.white.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
+                  border: Border.all(color: AppColors.white.withOpacity(0.2)),
+                ),
+                child: const Icon(Icons.analytics_outlined, color: AppColors.white, size: 24),
+              ),
+            ],
           ),
-          SizedBox(height: AppSpacing.xl),
+          SizedBox(height: AppSpacing.xxl),
           Row(
             children: [
               Expanded(
                 child: _metricCard(
-                  title: 'Flotte active',
+                  title: 'Flotte Active',
                   value: stats['active'].toString(),
-                  subtitle: '${stats['total']} bateaux',
-                  icon: Icons.directions_boat,
-                  color: AppColors.primaryLight,
-                  gradientColors: [
-                    AppColors.primaryLight.withOpacity(0.18),
-                    AppColors.primary.withOpacity(0.10),
-                  ],
+                  subtitle: '${stats['total']} navires',
+                  icon: Icons.sailing_rounded,
+                  color: AppColors.accentLight,
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      AppColors.primaryLight.withOpacity(0.8),
+                      AppColors.accent.withOpacity(0.6),
+                    ],
+                  ),
                 ),
               ),
               SizedBox(width: AppSpacing.lg),
               Expanded(
                 child: _metricCard(
-                  title: 'Caméras actives',
+                  title: 'Alertes IA',
                   value: stats['cameras'].toString(),
-                  subtitle: '${stats['total']} total',
-                  icon: Icons.videocam,
-                  color: AppColors.success,
-                  gradientColors: [
-                    AppColors.success.withOpacity(0.18),
-                    AppColors.success.withOpacity(0.08),
-                  ],
+                  subtitle: 'Système actif',
+                  icon: Icons.auto_awesome_rounded,
+                  color: AppColors.warningLight,
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      AppColors.warning.withOpacity(0.8),
+                      AppColors.warningLight.withOpacity(0.6),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -389,39 +425,39 @@ class _HomeState extends State<Home> {
     required String subtitle,
     required IconData icon,
     required Color color,
-    required List<Color> gradientColors,
+    required Gradient gradient,
   }) {
     return Container(
       padding: EdgeInsets.all(AppSpacing.xl),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppRadius.xl),
-        border: Border.all(color: Colors.white.withOpacity(0.2)),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: gradientColors,
-        ),
-        boxShadow: AppShadows.elevated,
+        borderRadius: BorderRadius.circular(AppRadius.xxl),
+        gradient: gradient,
+        boxShadow: AppShadows.premium,
+        border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 46,
-            height: 46,
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.18),
-              borderRadius: BorderRadius.circular(AppRadius.md),
-              border: Border.all(color: color.withOpacity(0.3)),
-            ),
-            child: Icon(icon, color: color, size: 22),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: EdgeInsets.all(AppSpacing.sm),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: Colors.white, size: 20),
+              ),
+              const Icon(Icons.trending_up, color: Colors.white70, size: 16),
+            ],
           ),
-          SizedBox(height: AppSpacing.lg),
+          SizedBox(height: AppSpacing.xl),
           Text(
             value,
             style: const TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.w800,
+              fontSize: 36,
+              fontWeight: FontWeight.w900,
               color: AppColors.white,
               letterSpacing: -1,
             ),
@@ -429,18 +465,18 @@ class _HomeState extends State<Home> {
           SizedBox(height: 4),
           Text(
             title,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: AppColors.white.withOpacity(0.9),
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: AppColors.white,
             ),
           ),
-          SizedBox(height: 2),
           Text(
             subtitle,
             style: TextStyle(
-              fontSize: 11,
-              color: AppColors.white.withOpacity(0.6),
+              fontSize: 12,
+              color: AppColors.white.withOpacity(0.7),
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
@@ -500,21 +536,25 @@ class _HomeState extends State<Home> {
   Widget _filterChip(String label, bool isSelected) {
     return GestureDetector(
       onTap: () => setState(() => _selectedFilter = label),
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      child: AnimatedContainer(
+        duration: AppDurations.normal,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.white : Colors.white.withOpacity(0.18),
+          color: isSelected ? AppColors.white : AppColors.white.withOpacity(0.12),
           borderRadius: BorderRadius.circular(AppRadius.round),
-          border: isSelected
-              ? null
-              : Border.all(color: Colors.white.withOpacity(0.3)),
+          border: Border.all(
+            color: isSelected ? AppColors.white : AppColors.white.withOpacity(0.2),
+            width: 1.5,
+          ),
+          boxShadow: isSelected ? AppShadows.subtle : null,
         ),
         child: Text(
           label,
           style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
+            fontSize: 12,
+            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
             color: isSelected ? AppColors.primary : AppColors.white,
+            letterSpacing: 0.2,
           ),
         ),
       ),
@@ -561,176 +601,190 @@ class _HomeState extends State<Home> {
     final statusIcon = _statusIcon(boat.status);
 
     return Container(
-      margin: EdgeInsets.only(bottom: AppSpacing.md),
+      margin: EdgeInsets.only(bottom: AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.white.withOpacity(0.93),
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        boxShadow: AppShadows.card,
-        border: Border.all(color: statusColor.withOpacity(0.2), width: 1.5),
+        color: AppColors.white.withOpacity(0.96),
+        borderRadius: BorderRadius.circular(AppRadius.xxl),
+        boxShadow: AppShadows.premium,
+        border: Border.all(
+          color: AppColors.primary.withOpacity(0.05),
+          width: 1,
+        ),
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => BoatDetailScreen(boat: boat)),
-          ),
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          child: Padding(
-            padding: EdgeInsets.all(AppSpacing.md),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // En-tête
-                Row(
-                  children: [
-                    Container(
-                      width: 42,
-                      height: 42,
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.08),
-                        borderRadius: BorderRadius.circular(AppRadius.md),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(AppRadius.md),
-                        child: Image.asset(
-                          boat.imageUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => const Icon(
-                            Icons.directions_boat,
-                            color: AppColors.primary,
-                            size: 24,
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: AppSpacing.md),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            boat.name,
-                            style: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.primary,
-                            ),
-                          ),
-                          Text(
-                            'ID: ${boat.id}',
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: AppColors.textSecondary),
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Badge statut
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: AppSpacing.md,
-                        vertical: 5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: statusColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(AppRadius.round),
-                        border: Border.all(color: statusColor.withOpacity(0.3)),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(statusIcon, size: 12, color: statusColor),
-                          SizedBox(width: 4),
-                          Text(
-                            boat.status,
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: statusColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: AppSpacing.md),
-                // Métriques
-                Row(
-                  children: [
-                    Expanded(
-                      child: _boatMetric(
-                        Icons.speed,
-                        '${boat.speed.toStringAsFixed(1)} nœuds',
-                        'Vitesse',
-                        AppColors.primaryLight,
-                      ),
-                    ),
-                    Container(width: 1, height: 36, color: AppColors.border),
-                    Expanded(
-                      child: _boatMetric(
-                        Icons.people,
-                        '${boat.crewMembers}',
-                        'Équipage',
-                        AppColors.primary,
-                      ),
-                    ),
-                    Container(width: 1, height: 36, color: AppColors.border),
-                    Expanded(
-                      child: _boatMetric(
-                        boat.cameraActive ? Icons.videocam : Icons.videocam_off,
-                        boat.cameraActive ? 'Active' : 'Inactive',
-                        'Caméra',
-                        boat.cameraActive
-                            ? AppColors.success
-                            : AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: AppSpacing.md),
-                // Footer
-                Row(
-                  children: [
-                    Icon(
-                      Icons.access_time,
-                      size: 13,
-                      color: AppColors.textSecondary,
-                    ),
-                    SizedBox(width: 4),
-                    Text(
-                      'Mis à jour : ${boat.lastUpdate}',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                    const Spacer(),
-                    GestureDetector(
-                      onTap: () => _deleteBoat(boat),
-                      child: Container(
-                        padding: EdgeInsets.all(6),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppRadius.xxl),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => BoatDetailScreen(boat: boat)),
+            ),
+            child: Padding(
+              padding: EdgeInsets.all(AppSpacing.lg),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 52,
+                        height: 52,
                         decoration: BoxDecoration(
-                          color: AppColors.error.withOpacity(0.08),
-                          borderRadius: BorderRadius.circular(AppRadius.sm),
+                          color: AppColors.primary.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(AppRadius.lg),
+                          boxShadow: AppShadows.subtle,
                         ),
-                        child: Icon(
-                          Icons.delete_outline,
-                          size: 16,
-                          color: AppColors.error,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(AppRadius.lg),
+                          child: Image.asset(
+                            boat.imageUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Icon(
+                              Icons.directions_boat_rounded,
+                              color: AppColors.primary.withOpacity(0.6),
+                              size: 28,
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                    SizedBox(width: AppSpacing.sm),
-                    const Icon(
-                      Icons.chevron_right,
-                      size: 20,
-                      color: AppColors.textSecondary,
-                    ),
-                  ],
-                ),
-              ],
+                      SizedBox(width: AppSpacing.lg),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              boat.name,
+                              style: const TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.primary,
+                                letterSpacing: -0.2,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withOpacity(0.05),
+                                borderRadius: BorderRadius.circular(AppRadius.sm),
+                              ),
+                              child: Text(
+                                'ID : ${boat.id}',
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.primaryLight,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      _statusBadge(boat.status, statusColor, statusIcon),
+                    ],
+                  ),
+                  SizedBox(height: AppSpacing.xl),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _boatMetric(
+                          Icons.speed_rounded,
+                          '${boat.speed.toStringAsFixed(1)} nœuds',
+                          'Vitesse',
+                          AppColors.primaryLight,
+                        ),
+                      ),
+                      Container(width: 1.5, height: 40, color: AppColors.borderLight),
+                      Expanded(
+                        child: _boatMetric(
+                          Icons.group_rounded,
+                          '${boat.crewMembers}',
+                          'Équipage',
+                          AppColors.primary,
+                        ),
+                      ),
+                      Container(width: 1.5, height: 40, color: AppColors.borderLight),
+                      Expanded(
+                        child: _boatMetric(
+                          boat.cameraActive ? Icons.videocam_rounded : Icons.videocam_off_rounded,
+                          boat.cameraActive ? 'Active' : 'Offline',
+                          'Vision IA',
+                          boat.cameraActive ? AppColors.success : AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: AppSpacing.lg),
+                  Divider(color: AppColors.borderLight, height: 1),
+                  SizedBox(height: AppSpacing.md),
+                  Row(
+                    children: [
+                      Icon(Icons.history_rounded, size: 14, color: AppColors.textSecondary.withOpacity(0.7)),
+                      SizedBox(width: 6),
+                      Text(
+                        'Actualisé : ${boat.lastUpdate}',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                      const Spacer(),
+                      _actionButton(
+                        icon: Icons.delete_sweep_rounded,
+                        color: AppColors.error,
+                        onTap: () => _deleteBoat(boat),
+                      ),
+                      SizedBox(width: AppSpacing.sm),
+                      Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.primary.withOpacity(0.3)),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _statusBadge(String status, Color color, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(color: color.withOpacity(0.2), width: 1.5),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 6),
+          Text(
+            status.toUpperCase(),
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+              color: color,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _actionButton({required IconData icon, required Color color, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(AppRadius.md),
+        ),
+        child: Icon(icon, size: 18, color: color),
       ),
     );
   }

@@ -261,128 +261,165 @@ class _BoatDetailScreenState extends State<BoatDetailScreen>
     final statusIcon = _statusIconData(boat.status);
 
     return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 400),
+      constraints: const BoxConstraints(maxWidth: 420),
       child: Container(
-        padding: EdgeInsets.all(AppSpacing.xl),
+        padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: AppColors.white.withOpacity(0.88),
+          color: AppColors.white.withOpacity(0.92),
           borderRadius: BorderRadius.circular(AppRadius.xxl),
-          boxShadow: AppShadows.elevated,
+          boxShadow: AppShadows.premium,
           border: Border.all(
-            color: AppColors.white.withOpacity(0.5),
+            color: AppColors.white.withOpacity(0.6),
             width: 1.5,
           ),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Avatar
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    AppColors.primaryLight.withOpacity(0.15),
-                    AppColors.primary.withOpacity(0.08),
-                  ],
-                ),
-                border: Border.all(
-                  color: AppColors.primaryLight.withOpacity(0.4),
-                  width: 2,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primaryLight.withOpacity(0.25),
-                    blurRadius: 25,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: ClipOval(
-                child: Image.asset(
-                  boat.imageUrl,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    decoration: const BoxDecoration(
-                      gradient: AppGradients.cardHeader,
-                    ),
-                    child: const Icon(
-                      Icons.directions_boat_filled,
+            // Avatar with animated pulse background
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                _buildPulseCircle(90, AppColors.primaryLight.withOpacity(0.1)),
+                _buildPulseCircle(110, AppColors.primaryLight.withOpacity(0.05)),
+                Container(
+                  width: 86,
+                  height: 86,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: AppShadows.premium,
+                    border: Border.all(
                       color: AppColors.white,
-                      size: 36,
+                      width: 4,
+                    ),
+                  ),
+                  child: ClipOval(
+                    child: Image.asset(
+                      boat.imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        decoration: const BoxDecoration(
+                          gradient: AppGradients.cardHeader,
+                        ),
+                        child: const Icon(
+                          Icons.directions_boat_rounded,
+                          color: AppColors.white,
+                          size: 40,
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ),
+              ],
             ),
-            SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: 20),
             Text(
               boat.name,
               style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
+                fontSize: 26,
+                fontWeight: FontWeight.w900,
                 color: AppColors.primary,
-                letterSpacing: -0.5,
+                letterSpacing: -0.8,
               ),
             ),
-            SizedBox(height: 4),
-            Text(
-              'ID: ${boat.id}',
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: AppColors.textSecondary,
+            const SizedBox(height: 4),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.06),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
+              ),
+              child: Text(
+                'NAV-ID : ${boat.id}',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.primaryLight,
+                  letterSpacing: 0.5,
+                ),
               ),
             ),
-            SizedBox(height: AppSpacing.md),
+            const SizedBox(height: 20),
             Row(
-              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                _statusBadgeDetail(boat.status, statusColor, statusIcon),
+                const SizedBox(width: 12),
                 Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: AppSpacing.md,
-                    vertical: 6,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(AppRadius.round),
-                    border: Border.all(color: statusColor.withOpacity(0.4)),
+                    color: AppColors.success.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                    border: Border.all(color: AppColors.success.withOpacity(0.2)),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(statusIcon, size: 15, color: statusColor),
-                      SizedBox(width: AppSpacing.sm),
+                      const LiveIndicator(
+                        text: '',
+                        size: 8,
+                        showText: false,
+                      ),
+                      const SizedBox(width: 8),
                       Text(
-                        boat.status,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: statusColor,
+                        _lastUpdate.toUpperCase(),
+                        style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.success,
+                          letterSpacing: 0.5,
                         ),
                       ),
                     ],
-                  ),
-                ),
-                SizedBox(width: AppSpacing.sm),
-                LiveIndicator(
-                  text: _lastUpdate,
-                  size: 10,
-                  textStyle: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.success,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.5,
                   ),
                 ),
               ],
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildPulseCircle(double size, Color color) {
+    return AnimatedBuilder(
+      animation: _pulseController,
+      builder: (context, child) {
+        return Container(
+          width: size * (1 + _pulseController.value * 0.1),
+          height: size * (1 + _pulseController.value * 0.1),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: color,
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _statusBadgeDetail(String status, Color color, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(color: color.withOpacity(0.3), width: 1.5),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 8),
+          Text(
+            status.toUpperCase(),
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w900,
+              color: color,
+              letterSpacing: 1,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -468,26 +505,24 @@ class _BoatDetailScreenState extends State<BoatDetailScreen>
   // ── GPS Info ─────────────────────────────────
   Widget _buildGpsInfo() {
     return Container(
-      padding: EdgeInsets.all(AppSpacing.xxl),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppRadius.xl),
-        boxShadow: AppShadows.card,
-        border: Border.all(color: AppColors.border),
+        borderRadius: BorderRadius.circular(AppRadius.xxl),
+        boxShadow: AppShadows.premium,
+        border: Border.all(color: AppColors.borderLight, width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
           Row(
             children: [
               Container(
-                padding: EdgeInsets.all(AppSpacing.md),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [AppColors.primary, AppColors.primaryLight],
-                  ),
+                  gradient: AppGradients.cardHeader,
                   borderRadius: BorderRadius.circular(AppRadius.lg),
+                  boxShadow: AppShadows.subtle,
                 ),
                 child: const Icon(
                   Icons.location_on_rounded,
@@ -495,123 +530,103 @@ class _BoatDetailScreenState extends State<BoatDetailScreen>
                   size: 24,
                 ),
               ),
-              SizedBox(width: AppSpacing.lg),
+              const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Coordonnées actuelles',
-                      style: GoogleFonts.inter(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
+                    const Text(
+                      'Rapport Géolocalisation',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
                         color: AppColors.primary,
                         letterSpacing: -0.5,
                       ),
                     ),
-                    SizedBox(height: 3),
-                    Text(
-                      'Position GPS en temps réel',
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
-                        fontWeight: FontWeight.w500,
-                      ),
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: AppColors.success,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        const Text(
+                          'Satellite connecté',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textSecondary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
-              LiveIndicator(
-                text: _lastUpdate,
-                size: 8,
-                textStyle: const TextStyle(
-                  fontSize: 12,
-                  color: AppColors.success,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.5,
-                ),
-              ),
             ],
           ),
-          SizedBox(height: AppSpacing.xl),
-          // Badge vitesse GPS
+          const SizedBox(height: 24),
+          // Large Speed Card
           Container(
-            width: double.infinity,
-            padding: EdgeInsets.symmetric(
-              horizontal: AppSpacing.xl,
-              vertical: AppSpacing.lg,
-            ),
-            margin: EdgeInsets.only(bottom: AppSpacing.md),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [AppColors.primary, AppColors.primaryLight],
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [AppColors.primary, AppColors.primary.withOpacity(0.8)],
               ),
-              borderRadius: BorderRadius.circular(AppRadius.lg),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primary.withOpacity(0.3),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+              borderRadius: BorderRadius.circular(AppRadius.xl),
+              boxShadow: AppShadows.premium,
             ),
             child: Row(
               children: [
-                const Icon(
-                  Icons.speed_rounded,
-                  color: AppColors.white,
-                  size: 22,
-                ),
-                SizedBox(width: AppSpacing.md),
-                Text(
-                  'Vitesse GPS',
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white70,
-                  ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'VITESSE INSTANTANÉE',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          '${_currentSpeed.toStringAsFixed(1)}',
+                          style: const TextStyle(
+                            color: AppColors.white,
+                            fontSize: 32,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: -1,
+                          ),
+                        ),
+                        const Padding(
+                          padding: EdgeInsets.only(bottom: 6, left: 4),
+                          child: Text(
+                            'km/h',
+                            style: TextStyle(
+                              color: Colors.white60,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
                 const Spacer(),
-                Text(
-                  '${_currentSpeed.toStringAsFixed(1)} km/h',
-                  style: GoogleFonts.inter(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.white,
-                    letterSpacing: -0.5,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Lat / Lng
-          Container(
-            padding: EdgeInsets.all(AppSpacing.xl),
-            decoration: BoxDecoration(
-              color: AppColors.background,
-              borderRadius: BorderRadius.circular(AppRadius.lg),
-              border: Border.all(color: AppColors.border),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _coordCol(
-                    'Latitude',
-                    Icons.explore,
-                    _currentPosition.latitude.toStringAsFixed(6),
-                    AppColors.primary,
-                  ),
-                ),
-                Container(width: 1, height: 50, color: AppColors.border),
-                Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.only(left: AppSpacing.lg),
-                    child: _coordCol(
-                      'Longitude',
-                      Icons.compass_calibration,
-                      _currentPosition.longitude.toStringAsFixed(6),
-                      AppColors.accent,
-                    ),
                   ),
                 ),
               ],

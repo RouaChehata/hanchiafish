@@ -6,28 +6,35 @@
 import 'package:flutter/material.dart';
 
 // ─────────────────────────────────────────────
-//  COULEURS CENTRALES (miroir de MaritimeColors dans main.dart)
+//  COULEURS CENTRALES
 // ─────────────────────────────────────────────
 class AppColors {
-  // Bleus
+  // Bleus — palette maritime premium
   static const Color primary = Color(0xFF0A3D6B);
   static const Color primaryLight = Color(0xFF1565C0);
+  static const Color primaryDark = Color(0xFF062B4A);
   static const Color accent = Color(0xFF1E88E5);
+  static const Color accentLight = Color(0xFF64B5F6);
   static const Color surface = Color(0xFFE3F2FD);
+  static const Color surfaceLight = Color(0xFFF0F7FF);
 
   // Neutres
   static const Color white = Color(0xFFFFFFFF);
   static const Color background = Color(0xFFF5F8FC);
   static const Color lightGrey = Color(0xFFECF1F7);
   static const Color border = Color(0xFFDDE4EE);
+  static const Color borderLight = Color(0xFFE8EDF4);
   static const Color textSecondary = Color(0xFF90A4AE);
   static const Color textPrimary = Color(0xFF37474F);
   static const Color textOnPrimary = Color(0xFFFFFFFF);
 
   // Sémantiques
   static const Color success = Color(0xFF26A69A);
+  static const Color successLight = Color(0xFF4DB6AC);
   static const Color warning = Color(0xFFFFA726);
+  static const Color warningLight = Color(0xFFFFCC02);
   static const Color error = Color(0xFFEF5350);
+  static const Color errorLight = Color(0xFFEF9A9A);
   static const Color info = Color(0xFF00ACC1);
 
   // Caméra
@@ -89,6 +96,34 @@ class AppGradients {
     colors: [AppColors.primary, AppColors.primaryLight, AppColors.background],
     stops: [0.0, 0.25, 1.0],
   );
+
+  static const LinearGradient accentBar = LinearGradient(
+    begin: Alignment.centerLeft,
+    end: Alignment.centerRight,
+    colors: [AppColors.primaryLight, AppColors.accent],
+  );
+
+  static const LinearGradient successBar = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [AppColors.success, AppColors.successLight],
+  );
+
+  static const LinearGradient darkOverlay = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [Colors.transparent, Colors.black54],
+  );
+
+  static const LinearGradient shimmer = LinearGradient(
+    begin: Alignment(-1.0, -0.3),
+    end: Alignment(1.0, 0.3),
+    colors: [
+      Color(0xFFEBEBF4),
+      Color(0xFFF4F4F4),
+      Color(0xFFEBEBF4),
+    ],
+  );
 }
 
 // ─────────────────────────────────────────────
@@ -118,6 +153,44 @@ class AppShadows {
       offset: const Offset(0, 2),
     ),
   ];
+
+  /// Deep shadow with layered effect for premium cards
+  static List<BoxShadow> premium = [
+    BoxShadow(
+      color: AppColors.primary.withOpacity(0.12),
+      blurRadius: 24,
+      offset: const Offset(0, 8),
+    ),
+    BoxShadow(
+      color: AppColors.primaryLight.withOpacity(0.06),
+      blurRadius: 40,
+      offset: const Offset(0, 16),
+    ),
+  ];
+
+  /// Colored glow shadow
+  static List<BoxShadow> glow(Color color) => [
+    BoxShadow(
+      color: color.withOpacity(0.25),
+      blurRadius: 20,
+      offset: const Offset(0, 6),
+    ),
+    BoxShadow(
+      color: color.withOpacity(0.08),
+      blurRadius: 40,
+      offset: const Offset(0, 12),
+    ),
+  ];
+}
+
+// ─────────────────────────────────────────────
+//  ANIMATION DURATIONS
+// ─────────────────────────────────────────────
+class AppDurations {
+  static const Duration fast = Duration(milliseconds: 150);
+  static const Duration normal = Duration(milliseconds: 300);
+  static const Duration slow = Duration(milliseconds: 500);
+  static const Duration stagger = Duration(milliseconds: 100);
 }
 
 // ════════════════════════════════════════════════════════════════

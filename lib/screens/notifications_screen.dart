@@ -46,7 +46,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return MaritimeScaffold(
       appBar: MaritimeAppBar(
         title: 'Notifications',
         actions: [
@@ -56,8 +56,32 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ),
         ],
       ),
-      backgroundColor: AppColors.background,
-      body: _isLoading
+      headerContent: Padding(
+        padding: EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          AppSpacing.sm,
+          AppSpacing.lg,
+          0,
+        ),
+        child: Row(
+          children: [
+            _HeaderStatTile(
+              icon: Icons.notifications_active,
+              value: '${_alertes.length}',
+              label: 'Alertes',
+              color: AppColors.error,
+            ),
+            SizedBox(width: AppSpacing.md),
+            _HeaderStatTile(
+              icon: Icons.security,
+              value: '${_alertes.where((a) => a['type'] == 'Intrusion détectée').length}',
+              label: 'Intrusions',
+              color: AppColors.warning,
+            ),
+          ],
+        ),
+      ),
+      child: _isLoading
           ? const MaritimeLoadingState(message: 'Chargement des alertes…')
           : _alertes.isEmpty
           ? MaritimeEmptyState(
@@ -188,3 +212,53 @@ class _AlertStyle {
   final Color color;
   const _AlertStyle(this.icon, this.color);
 }
+
+// ── Tuile stat header ────────────────────────────────────────
+class _HeaderStatTile extends StatelessWidget {
+  final IconData icon;
+  final String value;
+  final String label;
+  final Color color;
+
+  const _HeaderStatTile({
+    required this.icon,
+    required this.value,
+    required this.label,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Container(
+        padding: EdgeInsets.all(AppSpacing.lg),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.9),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          boxShadow: AppShadows.subtle,
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: color, size: 26),
+            SizedBox(height: AppSpacing.sm),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                color: color,
+              ),
+            ),
+            Text(
+              label,
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+

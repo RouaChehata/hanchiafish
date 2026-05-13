@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:primaa/home.dart';
 import 'package:primaa/signupScreen.dart';
+import 'package:primaa/screens/app_theme.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -204,17 +205,17 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
 
           return Container(
             height: double.infinity,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Color(0xFF0D47A1), // Deep ocean blue at top
-                  Color(0xFF1565C0), // Deep blue
-                  Color(0xFF1E88E5), // Medium blue
-                  Color(0xFF42A5F5), // Light blue at bottom
+                  AppColors.primary,
+                  AppColors.primaryLight,
+                  AppColors.accent,
+                  AppColors.accent.withOpacity(0.8),
                 ],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                stops: [0.0, 0.3, 0.6, 1.0],
+                stops: const [0.0, 0.3, 0.6, 1.0],
               ),
             ),
             child: Stack(
@@ -374,8 +375,8 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                                           shaderCallback: (Rect bounds) {
                                             return const LinearGradient(
                                               colors: [
-                                                Color(0xFF1A237E),
-                                                Color(0xFF1E88E5),
+                                                AppColors.primary,
+                                                AppColors.accent,
                                               ],
                                               begin: Alignment.topLeft,
                                               end: Alignment.bottomRight,
@@ -398,8 +399,8 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                                           decoration: BoxDecoration(
                                             gradient: const LinearGradient(
                                               colors: [
-                                                Color(0xFF1A237E),
-                                                Color(0xFF1E88E5),
+                                                AppColors.primary,
+                                                AppColors.accent,
                                               ],
                                               begin: Alignment.centerLeft,
                                               end: Alignment.centerRight,
@@ -419,7 +420,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                                       keyboardType: TextInputType.emailAddress,
                                       style: const TextStyle(
                                         fontSize: 16,
-                                        color: Color(0xFF0D47A1),
+                                        color: AppColors.primary,
                                         fontWeight: FontWeight.w500,
                                       ),
                                       decoration: InputDecoration(
@@ -427,9 +428,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                                           padding: EdgeInsets.all(12),
                                           margin: EdgeInsets.only(right: 8),
                                           decoration: BoxDecoration(
-                                            color: const Color(
-                                              0xFF1E88E5,
-                                            ).withOpacity(0.1),
+                                            color: AppColors.accent.withOpacity(0.1),
                                             borderRadius:
                                                 const BorderRadius.only(
                                                   topLeft: Radius.circular(15),
@@ -444,12 +443,12 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                                           ),
                                           child: const Icon(
                                             Icons.email_outlined,
-                                            color: Color(0xFF1A237E),
+                                            color: AppColors.primary,
                                           ),
                                         ),
                                         labelText: 'Email',
                                         labelStyle: const TextStyle(
-                                          color: Color(0xFF607D8B),
+                                          color: AppColors.textSecondary,
                                           fontSize: 16,
                                           fontWeight: FontWeight.w500,
                                         ),
@@ -471,7 +470,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                                             15,
                                           ),
                                           borderSide: const BorderSide(
-                                            color: Color(0xFF1A237E),
+                                            color: AppColors.primary,
                                             width: 2,
                                           ),
                                         ),
@@ -491,7 +490,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                                       obscureText: !_isPasswordVisible,
                                       style: const TextStyle(
                                         fontSize: 16,
-                                        color: Color(0xFF0D47A1),
+                                        color: AppColors.primary,
                                         fontWeight: FontWeight.w500,
                                       ),
                                       decoration: InputDecoration(
@@ -499,9 +498,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                                           padding: EdgeInsets.all(12),
                                           margin: EdgeInsets.only(right: 8),
                                           decoration: BoxDecoration(
-                                            color: const Color(
-                                              0xFF1E88E5,
-                                            ).withOpacity(0.1),
+                                            color: AppColors.accent.withOpacity(0.1),
                                             borderRadius:
                                                 const BorderRadius.only(
                                                   topLeft: Radius.circular(15),
@@ -516,7 +513,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                                           ),
                                           child: const Icon(
                                             Icons.lock_outline,
-                                            color: Color(0xFF1A237E),
+                                            color: AppColors.primary,
                                           ),
                                         ),
                                         suffixIcon: IconButton(
@@ -524,7 +521,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                                             _isPasswordVisible
                                                 ? Icons.visibility_off
                                                 : Icons.visibility,
-                                            color: const Color(0xFF607D8B),
+                                            color: AppColors.textSecondary,
                                           ),
                                           onPressed: () {
                                             setState(() {
@@ -535,7 +532,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                                         ),
                                         labelText: 'Mot de passe',
                                         labelStyle: const TextStyle(
-                                          color: Color(0xFF607D8B),
+                                          color: AppColors.textSecondary,
                                           fontSize: 16,
                                           fontWeight: FontWeight.w500,
                                         ),
@@ -557,7 +554,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                                             15,
                                           ),
                                           borderSide: const BorderSide(
-                                            color: Color(0xFF1A237E),
+                                            color: AppColors.primary,
                                             width: 2,
                                           ),
                                         ),
@@ -578,9 +575,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                                           // TODO: Implement forgot password
                                         },
                                         style: TextButton.styleFrom(
-                                          foregroundColor: const Color(
-                                            0xFF1A237E,
-                                          ),
+                                          foregroundColor: AppColors.primary,
                                           padding: EdgeInsets.symmetric(
                                             horizontal: 16,
                                             vertical: 8,
@@ -608,9 +603,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                                         borderRadius: BorderRadius.circular(20),
                                         boxShadow: [
                                           BoxShadow(
-                                            color: const Color(
-                                              0xFF1A237E,
-                                            ).withOpacity(0.3),
+                                            color: AppColors.primary.withOpacity(0.3),
                                             blurRadius: 15,
                                             offset: const Offset(0, 8),
                                             spreadRadius: -5,
@@ -621,9 +614,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                                         onPressed: _isLoading ? null : signIn,
                                         style: ElevatedButton.styleFrom(
                                           foregroundColor: Colors.white,
-                                          backgroundColor: const Color(
-                                            0xFF1A237E,
-                                          ),
+                                          backgroundColor: AppColors.primary,
                                           minimumSize: const Size(
                                             double.infinity,
                                             60,
@@ -640,9 +631,9 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                                           decoration: BoxDecoration(
                                             gradient: const LinearGradient(
                                               colors: [
-                                                Color(0xFF1A237E),
-                                                Color(0xFF3949AB),
-                                                Color(0xFF1565C0),
+                                                AppColors.primary,
+                                                AppColors.primaryLight,
+                                                AppColors.accent,
                                               ],
                                               begin: Alignment.centerLeft,
                                               end: Alignment.centerRight,
@@ -715,7 +706,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                                         const Text(
                                           'Pas encore de compte? ',
                                           style: TextStyle(
-                                            color: Color(0xFF455A64),
+                                            color: AppColors.textPrimary,
                                             fontSize: 16,
                                           ),
                                         ),
@@ -761,14 +752,12 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                                           child: const Text(
                                             'Inscrivez-vous',
                                             style: TextStyle(
-                                              color: Color(0xFF1A237E),
+                                              color: AppColors.primary,
                                               fontWeight: FontWeight.bold,
                                               fontSize: 16,
                                               decoration:
                                                   TextDecoration.underline,
-                                              decorationColor: Color(
-                                                0xFF1A237E,
-                                              ),
+                                              decorationColor: AppColors.primary,
                                               decorationThickness: 1.5,
                                             ),
                                           ),

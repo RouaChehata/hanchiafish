@@ -252,8 +252,7 @@ class _CapturesScreenState extends State<CapturesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
+    return MaritimeScaffold(
       appBar: MaritimeAppBar(
         title: 'Captures d\'intrusion',
         actions: [
@@ -270,7 +269,66 @@ class _CapturesScreenState extends State<CapturesScreen> {
           ),
         ],
       ),
-      body: _isLoading
+      headerContent: !_isLoading && _captures.isNotEmpty
+          ? Padding(
+              padding: EdgeInsets.fromLTRB(
+                AppSpacing.lg,
+                AppSpacing.sm,
+                AppSpacing.lg,
+                0,
+              ),
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppSpacing.lg,
+                  vertical: AppSpacing.md,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
+                  border: Border.all(color: Colors.white.withOpacity(0.2)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.warning_amber_rounded,
+                      color: AppColors.white,
+                      size: 22,
+                    ),
+                    SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: Text(
+                        '${_captures.length} intrusion(s) détectée(s)',
+                        style: const TextStyle(
+                          color: AppColors.white,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.error.withOpacity(0.8),
+                        borderRadius: BorderRadius.circular(AppRadius.round),
+                      ),
+                      child: Text(
+                        '${_captures.length}',
+                        style: const TextStyle(
+                          color: AppColors.white,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          : null,
+      child: _isLoading
           ? const MaritimeLoadingState(message: 'Chargement des captures…')
           : _captures.isEmpty
           ? MaritimeEmptyState(
@@ -279,31 +337,22 @@ class _CapturesScreenState extends State<CapturesScreen> {
               subtitle:
                   'Les captures apparaîtront ici\nlors de détections d\'intrusion.',
             )
-          : Column(
-              children: [
-                // ── Bannière compteur ──────────────
-                _buildAlertBanner(),
-                // ── Grille ─────────────────────────
-                Expanded(
-                  child: GridView.builder(
-                    padding: EdgeInsets.fromLTRB(
-                      AppSpacing.lg,
-                      AppSpacing.md,
-                      AppSpacing.lg,
-                      AppSpacing.lg,
-                    ),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: AppSpacing.md,
-                          mainAxisSpacing: AppSpacing.md,
-                          childAspectRatio: 0.72,
-                        ),
-                    itemCount: _captures.length,
-                    itemBuilder: (_, i) => _buildCaptureCard(_captures[i], i),
+          : GridView.builder(
+              padding: EdgeInsets.fromLTRB(
+                AppSpacing.lg,
+                AppSpacing.lg,
+                AppSpacing.lg,
+                AppSpacing.lg,
+              ),
+              gridDelegate:
+                  const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: AppSpacing.md,
+                    mainAxisSpacing: AppSpacing.md,
+                    childAspectRatio: 0.72,
                   ),
-                ),
-              ],
+              itemCount: _captures.length,
+              itemBuilder: (_, i) => _buildCaptureCard(_captures[i], i),
             ),
     );
   }
