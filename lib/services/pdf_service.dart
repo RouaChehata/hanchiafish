@@ -1,7 +1,9 @@
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-import 'package:flutter/foundation.dart' show kIsWeb; // نزيدو هذي باش نعرفو نوع المنصة
+import 'package:flutter/foundation.dart' show kIsWeb;
+// ignore: avoid_web_libraries_in_flutter
+import 'dart:html' as html; // ← pour le téléchargement direct sur Web
 import '../models/boat_model.dart';
 
 class PdfService {
@@ -51,15 +53,16 @@ class PdfService {
     final pdfBytes = await pdf.save();
     final fileName = 'rapport_${boat.name}_$dateStr.pdf';
 
-    // ── التعديل الأساسي لهنا ──
     if (kIsWeb) {
-      // على الـ Web: نستعملو sharePdf باش يهبط الملف ديريكت للـ Downloads
-      await Printing.sharePdf(
-        bytes: pdfBytes,
-        filename: fileName,
-      );
+      // ✅ FIX Web : téléchargement direct sans dialog de partage
+      final blob = html.Blob([pdfBytes], 'application/pdf');
+      final url  = html.Url.createObjectUrlFromBlob(blob);
+      final anchor = html.AnchorElement(href: url)
+        ..setAttribute('download', fileName)
+        ..click();
+      html.Url.revokeObjectUrl(url); // libérer la mémoire
     } else {
-      // على الـ Mobile: نخليوه يفتح الـ Preview متاع الطباعة العادي
+      // Mobile / Desktop : preview impression
       await Printing.layoutPdf(
         onLayout: (format) async => pdfBytes,
         name: fileName,
