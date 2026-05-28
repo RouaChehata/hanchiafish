@@ -66,7 +66,7 @@ class _BoatDetailScreenState extends State<BoatDetailScreen>
     )..repeat();
 
     _loadGps();
-    _gpsTimer = Timer.periodic(const Duration(seconds: 60), (_) => _loadGps());
+    _gpsTimer = Timer.periodic(const Duration(seconds: 5), (_) => _loadGps());
   }
 
   Future<void> _loadGps() async {
