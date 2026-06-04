@@ -4,7 +4,7 @@ import '../models/boat_model.dart';
 import 'package:primaa/api_service.dart';
 
 class GroqService {
-  static const String _apiKey = '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';
+  static const String _apiKey = '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';
   static const String _apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
   static const String _model = 'llama-3.1-8b-instant';
 
