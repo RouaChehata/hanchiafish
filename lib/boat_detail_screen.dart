@@ -1211,7 +1211,7 @@ class _BoatDetailScreenState extends State<BoatDetailScreen>
       _showRapport = true;
     });
 
-    const apiKey = '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';
+    const apiKey = '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';
     final prompt =
         '''
 Tu es un officier maritime. Génère un rapport d\'état professionnel en français.
